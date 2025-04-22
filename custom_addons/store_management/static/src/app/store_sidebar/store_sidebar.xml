@@ -1,0 +1,11 @@
+<odoo>
+    <template id="store_sidebar_template" name="Store Sidebar">
+        <t t-call="web.layout">
+            <t t-call-assets="web.assets_frontend" />
+            <div class="container-fluid p-0">
+                <!-- Sidebar Component -->
+                <div t-component="StoreSidebar"/>
+            </div>
+        </t>
+    </template>
+</odoo>

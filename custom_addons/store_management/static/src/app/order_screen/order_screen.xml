@@ -1,0 +1,9 @@
+<odoo>
+    <template id="order_screen_template" name="Order Screen">
+        <t t-call="web.layout">
+            <t t-call-assets="web.assets_frontend" />
+            <div class="container mt-3" id="order-screen">
+            </div>
+        </t>
+    </template>
+</odoo>

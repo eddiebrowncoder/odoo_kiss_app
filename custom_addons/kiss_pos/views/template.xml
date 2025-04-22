@@ -1,0 +1,11 @@
+<odoo>
+<template id="template" name="Template">
+  <t t-call="web.layout">
+    <t t-call-assets="web.assets_frontend" />
+    
+    <div class="container-fluid p-0">
+      <div id="app-container"></div>
+    </div>
+  </t>
+</template>
+</odoo>

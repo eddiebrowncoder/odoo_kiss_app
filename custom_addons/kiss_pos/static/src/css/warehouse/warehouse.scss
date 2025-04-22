@@ -1,0 +1,56 @@
+.breadcrumb-item a {
+    color: #adb5bd;
+    text-decoration: none;
+  }
+  
+  .breadcrumb-item.active {
+    color: #212529;
+    font-weight: 500;
+  }
+  
+  .breadcrumb-item + .breadcrumb-item::before {
+    color: #adb5bd;
+  }
+
+  .testclass {
+    background-color: red;
+  }
+
+  .breadcrum-item-light {
+    // font-family: Neue Haas Grotesk Display Pro;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0px;
+    text-align: center;
+    color: #BFBFBF;
+  }
+
+  .breadcrum-item-dark {
+    // font-family: Neue Haas Grotesk Display Pro;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 20px;
+    letter-spacing: 0px;
+    text-align: center;
+    color: #1A1A1A;
+  }
+
+  .table-header-style {
+    background-color: #FBFBFB !important;
+  }
+
+.table-header-label {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0px;
+    text-transform: uppercase;
+}
+.table-td-style {
+    // font-family: Neue Haas Grotesk Display Pro;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0px;
+}

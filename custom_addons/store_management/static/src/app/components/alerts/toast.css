@@ -1,0 +1,28 @@
+/* File: your_module/static/src/components/toast/toast.css */
+
+.o_toast_container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.o_toast {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    min-width: 250px;
+    max-width: 350px;
+}
+
+.o_toast_content {
+    display: flex;
+    align-items: center;
+}
+
+.o_toast_content i {
+    margin-right: 8px;
+}

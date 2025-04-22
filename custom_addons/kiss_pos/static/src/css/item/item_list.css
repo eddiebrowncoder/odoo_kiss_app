@@ -1,0 +1,20 @@
+.bg-success-subtle {
+    background-color: #e6f4ea !important;
+    color: #198754 !important;
+}
+
+.bg-danger-subtle {
+    background-color: #fdecea !important;
+    color: #dc3545 !important;
+}
+
+.bg-secondary-subtle {
+    background-color: #f2f2f2 !important;
+    color: #6c757d !important;
+}
+.bg-yellow-100 {
+    background-color: #FFFBE6 !important;
+}
+.bg-gray-200 {
+    background-color: #f2f2f2 !important;
+}

@@ -1,0 +1,8 @@
+<odoo>
+    <template id="store_page_template" name="POS Store Page">
+        <t t-call="web.layout">
+            <t t-call-assets="web.assets_frontend" />
+            <div id="pos-order-screen-container"></div>
+        </t>
+    </template>
+</odoo>

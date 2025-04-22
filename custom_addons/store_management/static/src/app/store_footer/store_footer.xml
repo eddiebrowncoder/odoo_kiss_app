@@ -1,0 +1,10 @@
+<odoo>
+    <template id="store_footer_template" name="Store Footer">
+        <t t-call="web.layout">
+            <t t-call-assets="web.assets_frontend" />
+            <div class="container-fluid" id="store-footer">
+                <!-- Footer content will be rendered by the JS component -->
+            </div>
+        </t>
+    </template>
+</odoo>

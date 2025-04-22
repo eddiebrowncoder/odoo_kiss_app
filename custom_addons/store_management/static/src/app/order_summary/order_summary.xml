@@ -1,0 +1,9 @@
+<odoo>
+    <template id="order_summary_template" name="Order Summary">
+        <t t-call="web.layout">
+            <t t-call-assets="web.assets_frontend" />
+            <div class="container mt-3" id="order-summary">
+            </div>
+        </t>
+    </template>
+</odoo>
