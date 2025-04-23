@@ -131,7 +131,7 @@ export class CategoryAdd extends Component {
                 this.navigateBack();
             } else {
                 console.error("❌ Unknown error:", result);
-                alert("Failed to add category. Check console for details.");
+                alert("Error: " + result?.result?.message);
             }
         } catch (e) {
             console.error("❌ Error in API call:", e);

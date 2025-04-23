@@ -23,7 +23,7 @@ class CategoryController(http.Controller):
             all_categories = [{
                 "id": c.id,
                 "name": c.name,
-                "status": "Active",
+                "status": "Active" if c.status else "Inactive",  # Use our new status field
                 "created_by": c.create_uid.name,
                 "created_date": c.create_date.strftime('%m/%d/%y') if c.create_date else None,
                 "modified_by": c.write_uid.name if c.write_uid else None,
@@ -40,37 +40,6 @@ class CategoryController(http.Controller):
             _logger.error(f"Error fetching categories: {str(e)}")
             return request.make_response(json.dumps({'error': 'Internal Server Error'}), status=500)
 
-    # @http.route('/api/category_add', type='json', auth='user', methods=['POST'], csrf=False)
-    # def category_add(self, **kw):
-        try:
-            _logger.info(f"Category add API request received with data: {kw}")
-
-            name = kw.get('name')
-            parent_id = kw.get('parent_id')
-
-            if not name:
-                return {"error": "Category name is required"}
-
-            category = request.env['product.category'].sudo().create({
-                'name': name,
-                'parent_id': parent_id if parent_id else False,
-            })
-
-            _logger.info(f"Category created successfully with ID: {category.id}")
-
-            return {
-                "success": True,
-                "category_id": category.id,
-                "message": f"Category '{name}' created successfully"
-            }
-        except Exception as e:
-            _logger.error(f"Error creating category: {str(e)}")
-            return {
-                "success": False,
-                "error": f"Error creating category: {str(e)}"
-            }
-
-
     @http.route('/api/category_add', type='json', auth='user', methods=['POST'], csrf=False)
     def category_add(self, **kw):
         try:
@@ -79,14 +48,24 @@ class CategoryController(http.Controller):
             name = kw.get('name')
             parent_id = kw.get('parent_id')
             item_ids = kw.get('item_ids', [])  # Get item IDs from request
+            status = kw.get('status', True)  # Default to True (active) if not provided
 
             if not name:
                 return {"error": "Category name is required"}
+            
+             # Check if category with the same name already exists
+            existing_category = request.env['product.category'].sudo().search([('name', '=', name)], limit=1)
+            if existing_category:
+                return {
+                    "success": False,
+                    "message": f"Category '{name}' already exists with ID: {existing_category.id}"
+            }
 
             # Create the category
             category = request.env['product.category'].sudo().create({
                 'name': name,
                 'parent_id': parent_id if parent_id else False,
+                 'status': status,
             })
 
             # If items were selected, update their categories
@@ -101,6 +80,7 @@ class CategoryController(http.Controller):
             return {
                 "success": True,
                 "category_id": category.id,
+                "status": status,
                 "items_updated": len(item_ids) if item_ids else 0,
                 "message": f"Category '{name}' created successfully with {len(item_ids) if item_ids else 0} items"
             }
@@ -117,12 +97,16 @@ class CategoryController(http.Controller):
         """
         Delete a category by ID
         
+        If category has products associated with it:
+        1. Reassign all products to default category ("-")
+        2. Then delete the category
+        
         :param category_id: ID of the category to delete
         :return: dict with success status and message
         """
         try:
             # Check if the category exists
-            category = request.env['product.category'].browse(category_id)
+            category = request.env['product.category'].browse(int(category_id))
             
             if not category.exists():
                 return {
@@ -136,7 +120,28 @@ class CategoryController(http.Controller):
                     'success': False,
                     'message': 'Permission denied'
                 }
-                
+            
+            # Get the default category ("-")
+            default_category = request.env['product.category'].search([('name', '=', '-')], limit=1)
+            
+            # If default category doesn't exist, create it
+            if not default_category:
+                default_category = request.env['product.category'].create({
+                    'name': '-',
+                    'complete_name': '-',
+                })
+            
+            # Find all products associated with this category and its children
+            products = request.env['product.template'].search([
+                '|',
+                ('categ_id', '=', category.id),
+                ('categ_id', 'child_of', category.id)
+            ])
+            
+            # Reassign all products to the default category
+            if products:
+                products.write({'categ_id': default_category.id})
+            
             # Delete the category
             category.unlink()
             

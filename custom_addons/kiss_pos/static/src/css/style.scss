@@ -1,3 +1,4 @@
+
 // Custom SCSS to override badge styles
 $badge-success-bg: #28a745 !default; // Green background for active status
 $badge-danger-bg: #dc3545 !default; // Red background for inactive status
@@ -119,11 +120,11 @@ $badge-danger-bg: #dc3545 !default; // Red background for inactive status
     color: black;
   }
 
-  /** import_item.css **/
+ /* Updated dropzone styling */
 .import-dropzone {
-    max-width: 1500px; /* Set a maximum width to prevent it from stretching too much */
+    max-width: 1500px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 3rem;
     border: 4px dashed #cbd5e0;
     background-color: #f3f4f6;
     text-align: center;
@@ -131,12 +132,17 @@ $badge-danger-bg: #dc3545 !default; // Red background for inactive status
     border-radius: 0.75rem;
     transition: all 0.3s ease-in-out;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex; /* Use flexbox to center content */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 200px; /* Fixed height for consistency */
 }
 
-/* Hover state for the dropzone */
+/* Hover effect for the dropzone */
 .import-dropzone:hover {
     background-color: #ebf8ff;
-    border-color: #3b82f6;
+    border-color: #3182ce;
 }
 
 /* Icon styles */
@@ -157,6 +163,7 @@ $badge-danger-bg: #dc3545 !default; // Red background for inactive status
     font-weight: 600;
     color: #374151;
     transition: color 0.3s ease-in-out;
+    margin-top: 1rem; /* Add space between icon and text */
 }
 
 /* Hover effect on the text */
@@ -164,6 +171,33 @@ $badge-danger-bg: #dc3545 !default; // Red background for inactive status
     color: #3b82f6;
 }
 
+/* Progress bar styling */
+.progress-bar {
+    background-color: #4299e1;
+    height: 100%;
+    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+}
+
+/* Dynamic color changes for the progress bar */
+.progress-bar.bg-blue-500 {
+    background-color: #4299e1; /* Blue */
+}
+
+.progress-bar.bg-red-500 {
+    background-color: #ef4444; /* red */
+}
+
+.progress-bar.bg-blue-600 {
+    background-color: #3182ce; /* Darker blue */
+}
+.progress-bar.bg-green-500 {
+    background-color: #48bb78; /* Green */
+}
+
+/* Add smooth transition effect when progressing */
+.progress-bar {
+    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+}
 
 .download-button-wrapper {
   display: flex;
@@ -188,4 +222,3 @@ $badge-danger-bg: #dc3545 !default; // Red background for inactive status
 .download-button:hover {
   background-color: #f3f4f6; /* hover:bg-gray-100 */
 }
-

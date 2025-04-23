@@ -291,7 +291,7 @@ export class CategoryList extends Component {
                     <td class="child-category-text-style"><t t-esc="category.modified_by"/></td>
                     <td class="child-category-text-style"><t t-esc="category.modified_date"/></td>
                     <td>
-                        <span t-att-class="category.status == 'Active' ? 'badge bg-success' : 'badge bg-danger'">
+                        <span t-att-class="category.status == 'Active' ? 'badge text-success bg-success-subtle' : 'badge bg-light'">
                             <t t-esc="category.status"/>
                         </span>
                     </td>
