@@ -38,16 +38,28 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
         this.state.activeTab = "add";
     }
 
-    onClickUpload() {
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.accept = ".csv, .xlsx";
-        fileInput.onchange = (event) => {
+    onClickUpload(ev) {
+    if (ev && (ev.target.closest(".continue-button") || ev.target.closest(".different-file") || ev.target.closest(".tryagain-button"))) {
+        return;
+    }
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".csv, .xlsx";
+
+    fileInput.onchange = (event) => {
+        if (event && event.target) {
             const file = event.target.files[0];
             this.handleFile(file);
-        };
-        fileInput.click();
-    }
+        } else {
+            console.error("Error: The event target is not defined");
+        }
+    };
+
+    fileInput.click();
+}
+
+
 
     handleFile(file) {
         if (file && file.name.endsWith(".csv")) {
@@ -109,7 +121,7 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
                 progress,
                 isComplete ? "progress-bar bg-green-500" : "progress-bar bg-blue-500",
                 isComplete
-                ? `${progress}% Upload Complete`
+                ? `${progress}%  Complete`
                 : `Uploading item ${uploadedItems} of ${totalItems}`
             );
         }
@@ -197,22 +209,23 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
         document.body.removeChild(link);
     }
 
-//    onContinue() {
-//        window.history.back();
-//    }
-
         navigateBack() {
         if (this.props.onNavigate) {
             this.props.onNavigate("/item_list");
         } else {
-            // Fallback to direct navigation if onNavigate prop is not available
             window.history.pushState({}, "", "/item_list");
-            // Trigger a popstate event to update the route in MainLayout
             window.dispatchEvent(new PopStateEvent("popstate"));
         }
     }
 
     onTryagain() {
+        this.setProgress(0, "progress-bar bg-blue-500", "Uploading item 0 of 0");
+        this.errorText.message = "";
+        this.uploadedData.data = [];
+        this.onClickUpload();
+    }
+
+     uploadDifferentFile() {
         this.setProgress(0, "progress-bar bg-blue-500", "Uploading item 0 of 0");
         this.errorText.message = "";
         this.uploadedData.data = [];
@@ -269,7 +282,7 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
         <i class="fas fa-cloud-upload-alt text-6xl text-gray-600 hover:text-blue-500 transition-colors"></i>
         <i class="fa fa-file text-gray-600 hover:text-blue-500 transition-colors" style="font-size: 35px;"></i>
 
-<div class="progress w-full bg-gray-200 rounded-full mt-4 overflow-hidden" style="height: 6px; width: 1400px;"  t-if="progressValue.value !== 0">
+<div class="progress w-full bg-gray-200 rounded-full mt-4 overflow-hidden" style="height: 5px; width: 1400px;"  t-if="progressValue.value !== 0">
             <div t-ref="progressBar" t-att-class="progressBarClass.value"
                  t-att-style="'width: ' + progressValue.value + '%;'">
             </div>
@@ -279,32 +292,23 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
         <p class="text-sm font-semibold" style="font-size:15px;" t-if="progressValue.value === 0">Supports .CSV, .XLSX files</p>
         <p class="text-sm font-semibold" style="font-size:15px;" t-if="progressValue.value === 0">Browse files</p>
 
-   <div class="flex items-center justify-center"
-     t-if="progressValue.value === 100"
-     style="height: 70px; width: 100%;">
-
-    <button t-on-click="navigateBack" class="download-button">
-        Continue
-    </button>
-
-</div>
-
+       <div class="flex items-center justify-center" t-if="progressValue.value === 100" style="height: 70px; width: 100%;">
+        <button t-on-click="navigateBack" class="download-button continue-button">
+            Continue
+        </button>
     </div>
-</div>
 
-
-      <div class="download-button-wrapper">
-        <button t-on-click="onTryagain" class="download-button">
+     <div class="flex items-center justify-center" t-if="progressValue.value === 30" style="height: 70px; width: 100%;">
+        <button t-on-click="onTryagain" class="download-button tryagain-button">
             Try again
         </button>
     </div>
+   <p class="text-sm font-semibold different-file" style="font-size:16px; cursor: pointer;"  t-if="progressValue.value === 100" t-on-click="uploadDifferentFile">
+    Upload a different file
+    </p>
 
-     <div class="download-button-wrapper">
-        <button t-on-click="onUploadFile" class="download-button">
-            Upload a different file
-        </button>
     </div>
-
+</div>
 
 </div>`;
 }
