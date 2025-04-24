@@ -14,21 +14,21 @@ export class ImportItem extends Component {
         this.errorText = useState({ message: "No file uploaded yet." });
     }
 
-    setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
-        this.progressValue.value = value;
-        this.progressBarClass.value = colorClass;
+setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
+    this.progressValue.value = value;
+    this.progressBarClass.value = colorClass;
 
-        if (this.uploadStatus.el) {
-            this.uploadStatus.el.innerText = statusText;
-        }
-
-        // Update message
-        if (value === 0 && !statusText) {
-            this.errorText.message = "No file uploaded yet.";
-        } else {
-            this.errorText.message = statusText;
-        }
+    if (this.uploadStatus.el) {
+        this.uploadStatus.el.innerText = statusText;
     }
+
+    if (value === 0 && !statusText) {
+        this.errorText.message = "No file uploaded yet.";
+    } else {
+        this.errorText.message = statusText;
+    }
+}
+
 
     onUpdateClick() {
         this.state.activeTab = "update";
@@ -117,19 +117,41 @@ export class ImportItem extends Component {
 
     async sendToAPI(data) {
         try {
-            const createProduct = await rpc('/web/dataset/call_kw', {
+            const existingProduct = await rpc('/web/dataset/call_kw', {
                 model: 'product.template',
-                method: 'create',
-                args: [{
-                    name: data.item_name,
-                    default_code: data.sku,
-                    barcode: data.barcode,
-                    description: data.description,
-                    list_price: parseFloat(data["selling_price"]),
-                }],
+                method: 'search_read',
+                args: [[['barcode', '=', data.barcode]], ['id']],
                 kwargs: {},
             });
-            console.log("Product Template Created:", createProduct);
+
+            if (existingProduct.length > 0) {
+                const productId = existingProduct[0].id;
+                await rpc('/web/dataset/call_kw', {
+                    model: 'product.template',
+                    method: 'write',
+                    args: [[productId], {
+                        name: data.item_name,
+                        default_code: data.sku,
+                        barcode: data.barcode,
+                        description: data.description,
+                        list_price: parseFloat(data["selling_price"]),
+                    }],
+                    kwargs: {},
+                });
+            } else {
+                await rpc('/web/dataset/call_kw', {
+                    model: 'product.template',
+                    method: 'create',
+                    args: [{
+                        name: data.item_name,
+                        default_code: data.sku,
+                        barcode: data.barcode,
+                        description: data.description,
+                        list_price: parseFloat(data["selling_price"]),
+                    }],
+                    kwargs: {},
+                });
+            }
         } catch (error) {
             console.error("Error sending data to API:", error);
         }
@@ -138,7 +160,6 @@ export class ImportItem extends Component {
     onDrop(ev) {
         ev.preventDefault();
         this.dropZone.el.classList.remove("border-gray-500", "bg-gray-100");
-
         const file = ev.dataTransfer.files[0];
         this.handleFile(file);
     }
@@ -174,6 +195,28 @@ export class ImportItem extends Component {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+//    onContinue() {
+//        window.history.back();
+//    }
+
+        navigateBack() {
+        if (this.props.onNavigate) {
+            this.props.onNavigate("/item_list");
+        } else {
+            // Fallback to direct navigation if onNavigate prop is not available
+            window.history.pushState({}, "", "/item_list");
+            // Trigger a popstate event to update the route in MainLayout
+            window.dispatchEvent(new PopStateEvent("popstate"));
+        }
+    }
+
+    onTryagain() {
+        this.setProgress(0, "progress-bar bg-blue-500", "Uploading item 0 of 0");
+        this.errorText.message = "";
+        this.uploadedData.data = [];
+        this.onClickUpload();
     }
 
     static template = xml`
@@ -215,21 +258,54 @@ export class ImportItem extends Component {
         </button>
     </div>
 
-    <div t-ref="dropZone"
-         t-on-click="onClickUpload"
-         t-on-dragover="onDragOver"
-         t-on-dragleave="onDragLeave"
-         t-on-drop="onDrop"
-         class="import-dropzone mx-auto p-8 border-2 border-dashed border-gray-400 bg-gray-300 text-center rounded-xl cursor-pointer transition-all shadow-sm hover:bg-blue-100 hover:border-blue-1500"
-         style="margin-left: 1rem; margin-top: 2rem;">
-        <div class="flex flex-col items-center justify-center space-y-4">
-            <i class="fas fa-cloud-upload-alt text-6xl text-gray-600 hover:text-blue-500 transition-colors"></i>
-            <i class="fa fa-file text-6xl text-gray-600 hover:text-blue-500 transition-colors"></i>
-            <p class="text-sm font-semibold" style="font-size:15px;" t-esc="errorText.message"></p>
-            <p class="text-sm font-semibold" style="font-size:16px;font-weight:600">Drag and drop, or browse files</p>
-            <p class="text-sm font-semibold" style="font-size:15px;">Supports .CSV, .XLSX files</p>
-        </div>
+   <div t-ref="dropZone"
+     t-on-click="onClickUpload"
+     t-on-dragover="onDragOver"
+     t-on-dragleave="onDragLeave"
+     t-on-drop="onDrop"
+     class="import-dropzone mx-auto p-8 border-2 border-dashed border-gray-400 bg-gray-300 text-center rounded-xl cursor-pointer transition-all shadow-sm hover:bg-blue-100 hover:border-blue-1500"
+     style="margin-left: 1rem; margin-top: 2rem;">
+    <div class="flex flex-col items-center justify-center space-y-4">
+        <i class="fas fa-cloud-upload-alt text-6xl text-gray-600 hover:text-blue-500 transition-colors"></i>
+        <i class="fa fa-file text-gray-600 hover:text-blue-500 transition-colors" style="font-size: 35px;"></i>
+
+<div class="progress w-full bg-gray-200 rounded-full mt-4 overflow-hidden" style="height: 6px; width: 1400px;"  t-if="progressValue.value !== 0">
+            <div t-ref="progressBar" t-att-class="progressBarClass.value"
+                 t-att-style="'width: ' + progressValue.value + '%;'">
+            </div>
+                </div>
+        <p class="text-sm font-semibold" style="font-size:15px;" t-esc="errorText.message" t-if="progressValue.value !== 0 "></p>
+        <p class="text-sm font-semibold" style="font-size:16px;font-weight:600" t-if="progressValue.value === 0">Drag and drop, or browse files</p>
+        <p class="text-sm font-semibold" style="font-size:15px;" t-if="progressValue.value === 0">Supports .CSV, .XLSX files</p>
+        <p class="text-sm font-semibold" style="font-size:15px;" t-if="progressValue.value === 0">Browse files</p>
+
+   <div class="flex items-center justify-center"
+     t-if="progressValue.value === 100"
+     style="height: 70px; width: 100%;">
+
+    <button t-on-click="navigateBack" class="download-button">
+        Continue
+    </button>
+
+</div>
+
     </div>
+</div>
+
+
+      <div class="download-button-wrapper">
+        <button t-on-click="onTryagain" class="download-button">
+            Try again
+        </button>
+    </div>
+
+     <div class="download-button-wrapper">
+        <button t-on-click="onUploadFile" class="download-button">
+            Upload a different file
+        </button>
+    </div>
+
+
 </div>`;
 }
 
