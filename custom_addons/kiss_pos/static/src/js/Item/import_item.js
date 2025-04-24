@@ -58,11 +58,8 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
 
     fileInput.click();
 }
-
-
-
     handleFile(file) {
-        if (file && file.name.endsWith(".csv")) {
+        if (file && (file.name.endsWith(".csv") || file.name.endsWith(".xlsx")))  {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const text = e.target.result;
@@ -103,29 +100,76 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
         }
     }
 
-    async uploadDataWithProgress(data) {
-        const totalItems = data.length;
-        let uploadedItems = 0;
+async uploadDataWithProgress(data) {
+    const totalItems = data.length;
+    let uploadedItems = 0;
+    let skippedItems = 0;
 
-        this.setProgress(0, "progress-bar bg-blue-500", `Uploading item 0 of ${totalItems}`);
+    this.setProgress(0, "progress-bar bg-blue-500", `Uploading item 0 of ${totalItems}`);
 
-        for (let i = 0; i < totalItems; i++) {
-            const item = data[i];
-            await this.sendToAPI(item);
+    const stripHtml = (html) => (html || '').replace(/<[^>]+>/g, '').trim();
 
-            uploadedItems++;
-            const progress = Math.floor((uploadedItems / totalItems) * 100);
-            const isComplete = uploadedItems === totalItems;
+    for (let i = 0; i < totalItems; i++) {
+        const item = data[i];
+        let shouldUpload = true;
 
-            this.setProgress(
-                progress,
-                isComplete ? "progress-bar bg-green-500" : "progress-bar bg-blue-500",
-                isComplete
-                ? `${progress}%  Complete`
-                : `Uploading item ${uploadedItems} of ${totalItems}`
-            );
+        const existingProduct = await rpc('/web/dataset/call_kw', {
+            model: 'product.template',
+            method: 'search_read',
+            args: [[['barcode', '=', item.barcode]], ['name', 'default_code', 'description', 'list_price']],
+            kwargs: {},
+        });
+
+        if (existingProduct.length > 0) {
+            const ep = existingProduct[0];
+
+            const nameMatch = (ep.name || '').trim() === (item.item_name || '').trim();
+            const codeMatch = (ep.default_code || '').trim() === (item.sku || '').trim();
+            const descMatch = stripHtml(ep.description) === (item.description || '').trim();
+            const priceMatch = parseFloat(ep.list_price).toFixed(2) === parseFloat(item.selling_price).toFixed(2);
+
+            if (nameMatch && codeMatch && descMatch && priceMatch) {
+                console.log(`✅ Already up to date: ${item.barcode}`);
+                shouldUpload = false;
+                skippedItems++;
+            } else {
+                console.log(`🔄 Changes detected, updating: ${item.barcode}`);
+            }
+        } else {
+            console.log(`➕ New product, creating: ${item.barcode}`);
         }
+
+        if (shouldUpload) {
+            await this.sendToAPI(item);
+            uploadedItems++;
+        }
+
+        const processedItems = uploadedItems + skippedItems;
+        const progress = Math.floor((processedItems / totalItems) * 100);
+        const isComplete = processedItems === totalItems;
+
+        let message = '';
+        if (shouldUpload) {
+            message = `Uploading item ${processedItems} of ${totalItems}`;
+        } else {
+            message = `Already up to date ${processedItems} of ${totalItems}`;
+        }
+
+        if (isComplete) {
+            if (uploadedItems > 0) {
+                message = `${progress}% Complete`;
+            } else {
+                message = `All ${skippedItems} items already up to date`;
+            }
+        }
+
+        this.setProgress(progress, "progress-bar bg-blue-500", message);
     }
+
+    console.log(`✅ Upload finished. Skipped: ${skippedItems}, Uploaded: ${uploadedItems}`);
+}
+
+
 
     async sendToAPI(data) {
         try {
@@ -179,7 +223,7 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
     onDragOver(ev) {
         ev.preventDefault();
         const file = ev.dataTransfer.items[0];
-        if (file && file.kind === "file" && file.type !== "text/csv") {
+if (file && file.kind === "file" && !["text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(file.type)) {
             this.dropZone.el.classList.add("border-red-500", "bg-red-100");
             this.setProgress(100, "progress-bar bg-red-500", "Invalid file type! Only CSV allowed.");
         } else {
