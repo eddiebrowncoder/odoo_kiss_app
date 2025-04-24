@@ -313,6 +313,168 @@ setProgress(value, colorClass = "progress-bar bg-blue-500", statusText = "") {
 </div>`;
 }
 
+
+// Add CSS to the document
+const style = document.createElement('style');
+style.textContent = `
+
+// Import item
+.import-container {
+    font-family: "Arial", sans-serif;
+}
+
+.tabs .tab {
+    padding-bottom: 8px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+}
+
+.tabs .tab.active {
+    border-color: #000;
+    color: #000;
+}
+
+.guidelines {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+}
+
+.upload-box {
+    transition: background 0.2s ease;
+}
+
+  .nav-underline {
+    border-bottom: 1px solid #ccc; /* optional: main line under tabs */
+  }
+
+ .nav-underline {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0;
+  }
+
+  .nav-underline .nav-item {
+    margin-right: 20px; /* Optional spacing between items */
+  }
+
+  .nav-underline .nav-link {
+    color: #999;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 0;
+  }
+
+  .nav-underline .nav-link:hover {
+    color: black;
+  }
+
+ /* Updated dropzone styling */
+.import-dropzone {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 3rem;
+    border: 4px dashed #cbd5e0;
+    background-color: #f3f4f6;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex; /* Use flexbox to center content */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 250px; /* Fixed height for consistency */
+}
+
+/* Hover effect for the dropzone */
+.import-dropzone:hover {
+    background-color: #ebf8ff;
+    border-color: #3182ce;
+}
+
+/* Icon styles */
+.import-dropzone .icon {
+    font-size: 3rem;
+    color: #6b7280;
+    transition: color 0.3s ease-in-out;
+}
+
+/* Hover effect on the icons */
+.import-dropzone:hover .icon {
+    color: #3b82f6;
+}
+
+/* Text styles */
+.import-dropzone .text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    transition: color 0.3s ease-in-out;
+    margin-top: 1rem; /* Add space between icon and text */
+}
+
+/* Hover effect on the text */
+.import-dropzone:hover .text {
+    color: #3b82f6;
+}
+
+/* Progress bar styling */
+.progress-bar {
+    background-color: #4299e1;
+    height: 100%;
+    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+}
+
+/* Dynamic color changes for the progress bar */
+.progress-bar.bg-blue-500 {
+    background-color: #4299e1; /* Blue */
+}
+
+.progress-bar.bg-red-500 {
+    background-color: #ef4444; /* red */
+}
+
+.progress-bar.bg-blue-600 {
+    background-color: #3182ce; /* Darker blue */
+}
+.progress-bar.bg-green-500 {
+    background-color: #48bb78; /* Green */
+}
+
+/* Add smooth transition effect when progressing */
+.progress-bar {
+    transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+}
+
+.download-button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 1.5rem; /* mt-6 */
+  padding: 1.25rem;    /* p-5 */
+}
+
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e5e7eb; /* equivalent to bg-gray-200 */
+  color: #1f2937;            /* equivalent to text-gray-800 */
+  padding: 0.5rem 1rem;      /* px-4 py-2 */
+  border-radius: 0.375rem;   /* rounded */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* shadow-sm */
+  transition: background-color 0.2s ease;
+}
+
+.download-button:hover {
+  background-color: #f3f4f6; /* hover:bg-gray-100 */
+}
+
+`;
+document.head.appendChild(style);
+
+
 document.addEventListener("DOMContentLoaded", () => {
     const el = document.getElementById("import_list-container");
     if (el) {
