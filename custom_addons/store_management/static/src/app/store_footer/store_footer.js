@@ -1,6 +1,6 @@
 /** @odoo-module **/
 import { Component, useState, xml } from '@odoo/owl';
-import { AddCustomer } from '../components/modals/add_customer';
+import { AddCustomer } from '../components/modals/AddCustomer';
 
 export class StoreFooter extends Component {
     setup() {

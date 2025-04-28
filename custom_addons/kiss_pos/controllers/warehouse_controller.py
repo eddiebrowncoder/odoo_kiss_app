@@ -72,6 +72,100 @@ class WarehouseController(http.Controller):
         
         return ", ".join(components)
 
+    @http.route('/api/warehouse_create', type='http', auth='public', methods=['POST'], csrf=False)
+    def api_warehouse_create(self, **kw):
+        _logger.info("API request received to create a warehouse")
+        try:
+            # Get request data from JSON body
+            data = json.loads(request.httprequest.data.decode('utf-8'))
+            
+            # Validate required fields
+            if not data.get('name'):
+                return request.make_response(
+                    json.dumps({'success': False, 'error': 'Warehouse name is required'}),
+                    headers=[('Content-Type', 'application/json')],
+                    status=400
+                )
+            
+            # Generate short code from name (first 5 characters uppercase)
+            code = data.get('name', '')[:5].upper()
+            if 'code' in data and data['code']:
+                code = data['code']
+            
+            # Create partner for warehouse address if address details are provided
+            partner_id = False
+            if any([data.get('address'), data.get('city'), data.get('state_id'), 
+                    data.get('zip_code'), data.get('country_id')]):
+                
+                partner_values = {
+                    'name': data.get('name'),
+                    'street': data.get('address', False),
+                    'city': data.get('city', False),
+                    'zip': data.get('zip_code', False),
+                    'company_id': request.env.user.company_id.id,
+                    'type': 'delivery',  # Address type
+                }
+                
+                # Add state and country if provided
+                if data.get('state_id'):
+                    try:
+                        state_id = int(data.get('state_id'))
+                        partner_values['state_id'] = state_id
+                    except (ValueError, TypeError):
+                        _logger.warning(f"Invalid state_id format: {data.get('state_id')}")
+                
+                if data.get('country_id'):
+                    try:
+                        country_id = int(data.get('country_id'))
+                        partner_values['country_id'] = country_id
+                    except (ValueError, TypeError):
+                        _logger.warning(f"Invalid country_id format: {data.get('country_id')}")
+                
+                # Create partner
+                _logger.info(f"Creating partner with values: {partner_values}")
+                partner = request.env['res.partner'].sudo().create(partner_values)
+                partner_id = partner.id
+                _logger.info(f"Partner created with ID: {partner_id}")
+            
+            # Create warehouse
+            warehouse_values = {
+                'name': data.get('name'),
+                'code': code,
+                'company_id': request.env.user.company_id.id,
+            }
+            
+            # Link partner if created
+            if partner_id:
+                warehouse_values['partner_id'] = partner_id
+            
+            # Create warehouse
+            _logger.info(f"Creating warehouse with values: {warehouse_values}")
+            warehouse = request.env['stock.warehouse'].sudo().create(warehouse_values)
+            _logger.info(f"Warehouse created with ID: {warehouse.id}")
+            
+            return request.make_response(
+                json.dumps({
+                    'success': True, 
+                    'warehouse_id': warehouse.id,
+                    'warehouse_name': warehouse.name,
+                    'warehouse_code': warehouse.code,
+                    'message': f"Warehouse '{data.get('name')}' created successfully"
+                }),
+                headers=[('Content-Type', 'application/json')]
+            )
+            
+        except Exception as e:
+            _logger.error(f"Error creating warehouse: {str(e)}")
+            _logger.error(traceback.format_exc())
+            return request.make_response(
+                json.dumps({
+                    'success': False, 
+                    'error': str(e)
+                }),
+                headers=[('Content-Type', 'application/json')],
+                status=500
+            )
+
     @http.route('/api/warehouse_delete/<int:warehouse_id>', type='http', auth='public', methods=['DELETE'], csrf=False)
     def api_warehouse_delete(self, warehouse_id, **kw):
         _logger.info(f"API request received to delete warehouse ID: {warehouse_id}")
@@ -151,6 +245,50 @@ class WarehouseController(http.Controller):
                 
             return request.make_response(
                 json.dumps({'error': 'Internal Server Error', 'details': str(e)}),
+                status=500,
+                headers=[('Content-Type', 'application/json')]
+            )
+        
+
+    @http.route('/api/warehouse/<int:warehouse_id>', type='http', auth='public', csrf=False)
+    def api_warehouse_by_id(self, warehouse_id, **kw):
+        _logger.info(f"API request received for warehouse ID: {warehouse_id}")
+        try:
+            # Search for specific warehouse by ID
+            warehouse = request.env['stock.warehouse'].browse(warehouse_id)
+            
+            # Check if warehouse exists
+            if not warehouse.exists():
+                return request.make_response(
+                    json.dumps({'error': f'Warehouse with ID {warehouse_id} not found'}),
+                    status=404,
+                    headers=[('Content-Type', 'application/json')]
+                )
+            
+            # Format warehouse data
+            warehouse_data = {
+                "id": warehouse.id,
+                "name": warehouse.name,
+                "code": warehouse.code,
+                "address": self._format_address(warehouse.partner_id) if warehouse.partner_id else "",
+                "company_id": warehouse.company_id.id if warehouse.company_id else None,
+                "company_name": warehouse.company_id.name if warehouse.company_id else None,
+                "status": "Active" if warehouse.active else "Inactive",
+                "created_by": warehouse.create_uid.name,
+                "created_date": warehouse.create_date.strftime('%m/%d/%y') if warehouse.create_date else None,
+                "modified_by": warehouse.write_uid.name if warehouse.write_uid else None,
+                "modified_date": warehouse.write_date.strftime('%m/%d/%y') if warehouse.write_date else None
+            }
+
+            return request.make_response(
+                json.dumps({'warehouse': warehouse_data}),
+                headers=[('Content-Type', 'application/json')]
+            )
+        except Exception as e:
+            _logger.error(f"Error fetching warehouse ID {warehouse_id}: {str(e)}")
+            _logger.error(traceback.format_exc())
+            return request.make_response(
+                json.dumps({'error': 'Internal Server Error'}),
                 status=500,
                 headers=[('Content-Type', 'application/json')]
             )

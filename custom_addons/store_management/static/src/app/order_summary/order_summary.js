@@ -12,7 +12,7 @@ export class OrderSummary extends Component {
     }
 
     static template = xml`
-        <div class="order-summary h-100 d-flex flex-column bg-ehite">
+        <div class="order-summary h-90vh d-flex flex-column bg-ehite">
             <div class="summary-header p-3">
                 <h5 class="m-0 text-16">ORDER SUMMARY</h5>
             </div>

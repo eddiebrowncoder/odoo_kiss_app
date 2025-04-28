@@ -71,3 +71,38 @@ $badge-danger-bg: #dc3545 !default; // Red background for inactive status
 }
 
 
+a.no-hover:hover,
+a.no-hover:focus {
+  color: white !important;
+}
+
+a.no-hover-blue:hover,
+a.no-hover-blue:focus {
+  color: #0070ff !important;
+}
+
+.text-gray-700 {
+  color: $o-gray-700;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.fs-28 {
+  font-size: 28px !important;
+}
+
+.page-heading-wrapper {
+  font-size: 28px;
+  font-weight: 700;
+}

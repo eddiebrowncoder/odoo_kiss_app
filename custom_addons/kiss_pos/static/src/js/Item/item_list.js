@@ -2,6 +2,10 @@
 // Nested items:
 import { Component, useState, xml } from "@odoo/owl";
 import { App } from "@odoo/owl";
+import { Export } from "../Export/export";
+import { Toast } from "../Common/toast";
+import { BulkEdit } from "../BulkEdit/bulk_edit";
+
 
 console.log("✅ JS Loaded");
 console.log("Checking updated code");
@@ -19,6 +23,9 @@ export class ItemList extends Component {
       selectedProducts: {},
       allSelected: false,
       showFilters: false,
+      showExportModal: false,
+      showBulkEditModal: false,
+      selectedItems: []
     });
 
     // Sample filter categories
@@ -43,6 +50,44 @@ export class ItemList extends Component {
     ];
 
     this.loadItems();
+
+    this.openExportModal = this.openExportModal.bind(this);
+    this.closeExportModal = this.closeExportModal.bind(this);
+
+    this.openBulkEditModal = this.openBulkEditModal.bind(this);
+    this.closeBulkEditModal = this.closeBulkEditModal.bind(this);
+
+    this.toggleItemSelection = (item) => {
+      const index = this.state.selectedItems.findIndex(selectedItem => selectedItem.id === item.id);
+      
+      if (index === -1) {
+        this.state.selectedItems.push(item);
+      } else {
+        this.state.selectedItems.splice(index, 1);
+      }
+    };
+  }
+
+  openExportModal() {
+    if (this.state.selectedItems.length === 0) {
+      Toast.error("Please select at least one item to export.");
+      return
+    }
+    this.state.showExportModal = true;
+  }
+  closeExportModal() {
+    this.state.showExportModal = false;
+  }
+
+    openBulkEditModal() {
+    if (this.state.selectedItems.length === 0) {
+      Toast.error("Please select at least one item to Edit.");
+      return
+    }
+    this.state.showBulkEditModal = true;
+  }
+  closeBulkEditModal() {
+    this.state.showBulkEditModal = false;
   }
 
   async loadItems() {
@@ -127,7 +172,7 @@ export class ItemList extends Component {
     }
   }
 
-      navigateToImportItem() {
+  navigateToImportItem() {
     if (this.props.onNavigate) {
       this.props.onNavigate('/import_item');
     } else {
@@ -158,6 +203,8 @@ export class ItemList extends Component {
     onNavigate: { type: Function, optional: true },
   };
 
+  static components = { Export ,BulkEdit };
+
   static template = xml/* xml */ `
       <div class="container-fluid px-4 pt-4">
         <!-- Breadcrumb -->
@@ -167,13 +214,13 @@ export class ItemList extends Component {
 
         <!-- Title + Actions -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="fw-bold mb-0">Item Management</h2>
+            <h2 class="fs-28 fw-bold mb-0">Item Management</h2>
             <div class="d-flex gap-2">
-                <span class="text-primary"><i class="fa fa-upload me-1"></i> Export</span>
+                <span class="text-primary cursor-pointer" t-on-click="openExportModal"><i class="fa fa-upload me-1"></i> Export</span>
                 <span class="text-primary" t-on-click="navigateToImportItem"><i class="fa fa-download me-1"></i> Import</span>
                 <span class="text-primary"><i class="fa fa-tag me-1"></i> Print Label</span>
                 <span class="text-primary"><i class="fa fa-barcode me-1"></i> Print Barcode</span>
-                <button class="btn btn-outline-secondary btn-sm" disabled="true"><i class="fa fa-edit me-1"></i> Bulk Edit</button>
+                <button class="btn btn-outline-secondary btn-sm"  t-on-click="openBulkEditModal" ><i class="fa fa-edit me-1"></i> Bulk Edit</button>
                 <button class="btn btn-outline-secondary btn-sm" disabled="true"><i class="fa fa-trash me-1"></i> Delete</button>
                 <button class="btn btn-primary btn-sm" t-on-click="navigateToAddItem"><i class="fa fa-plus me-1"></i> Add Item</button>
             </div>
@@ -331,7 +378,16 @@ export class ItemList extends Component {
         <tbody>
           <t t-foreach="state.items" t-as="item" t-key="item.id">
             <tr t-att-class="'border-bottom' + (item.status === 'Not Confirmed' ? ' bg-yellow-100' : '')">
-               <td><input type="radio" name="select_item" /></td>
+                <td>
+                  <label class="circular-checkbox filled-style">
+                    <input 
+                      type="checkbox" 
+                      name="select_item"
+                      t-att-checked="state.selectedItems.findIndex(i => i.id === item.id) !== -1"
+                      t-on-change="() => this.toggleItemSelection(item)" />
+                    <span class="checkmark"></span>
+                  </label>
+                </td>
                 <td class="fw-semibold text-black"><t t-esc="item.barcode"/></td>
                 <td class="text-muted"><t t-esc="item.sku"/></td>
                 <td><t t-esc="item.name"/></td>
@@ -363,6 +419,13 @@ export class ItemList extends Component {
         </tbody>
     </table>
 </div>
+    <t t-if="state.showExportModal">
+        <Export onClose="closeExportModal" items="state.selectedItems"/>
+    </t>
+
+      <t t-if="state.showBulkEditModal">
+        <BulkEdit onClose="closeBulkEditModal" items="state.selectedItems"/>
+    </t>
       </div>
   `;
 }

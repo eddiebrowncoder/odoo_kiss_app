@@ -246,9 +246,21 @@ export class CategoryAdd extends Component {
 
     static template = xml/* xml */ `
     <div class="container mt-4">
+
+        <!-- Breadcrumb -->
+        <div class="mb-1">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 px-0">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Home</a></li>
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Items</a></li>
+                    <li class="breadcrumb-item">Category Management</li>
+                    <li class="breadcrumb-item active">New Category</li>
+                </ol>
+            </nav>
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="page-heading-wrapper"> 
-                <p class="heading">New Categry</p>
+                <p class="heading">New Category</p>
             </div>
             <button class="btn btn-primary" t-on-click="saveCategory">
                 <i class="fa fa-plus me-1"></i> Add Category

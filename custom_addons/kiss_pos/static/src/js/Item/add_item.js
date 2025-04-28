@@ -211,7 +211,7 @@ export class AddItem extends Component {
         <!-- Title and Top Bar -->
         <div class="p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold mb-0">Add New Item</h2>
+                <h2 class="fs-28 fw-bold mb-0">Add New Item</h2>
                 <div>
                     <button class="btn btn-primary" t-on-click="handleSave">
                         Save Changes

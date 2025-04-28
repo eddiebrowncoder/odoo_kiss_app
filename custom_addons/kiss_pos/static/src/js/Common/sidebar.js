@@ -1,6 +1,7 @@
 /** @odoo-module **/
 import { Component, useState } from "@odoo/owl";
 import { xml } from "@odoo/owl";
+import { ImageIcon } from "./ImageIcon";
 
 // Sidebar Component with toggle functionality
 export class Sidebar extends Component {
@@ -16,14 +17,12 @@ export class Sidebar extends Component {
       {
         id: "home",
         label: "Home",
-        icon: "fa fa-home",
         href: "/",
         submenu: []
       },
       {
         id: "items",
         label: "Items",
-        icon: "fa fa-cube",
         href: "/item_list",
         submenu: [
           { id: "item_management", label: "Item Management", href: "/item_list" },
@@ -33,42 +32,36 @@ export class Sidebar extends Component {
       {
         id: "inventory",
         label: "Inventory",
-        icon: "fa fa-th-large",
         href: "/inventory",
         submenu: []
       },
       {
         id: "purchase",
         label: "Purchase",
-        icon: "fa fa-truck",
         href: "/purchase",
         submenu: []
       },
       {
         id: "sales",
         label: "Sales & Transaction",
-        icon: "fa fa-area-chart",
         href: "/sales",
         submenu: []
       },
       {
         id: "customer",
         label: "Customer & Loyalty",
-        icon: "fa fa-address-card",
         href: "/customers",
         submenu: []
       },
       {
         id: "employee",
         label: "Employee",
-        icon: "fa fa-users",
         href: "/employees",
         submenu: []
       },
       {
         id: "store",
         label: "Store Credit/Gift Card",
-        icon: "fa fa-credit-card",
         href: "/store_credit",
         submenu: [],
         hasChevron: true
@@ -76,7 +69,6 @@ export class Sidebar extends Component {
       {
         id: "settings",
         label: "Settings",
-        icon: "fa fa-cog",
         href: "/warehouse",
         submenu: [
           // { id: "warehouse_management", label: "Warehouse Management", href: "/warehouse" },
@@ -197,10 +189,6 @@ export class Sidebar extends Component {
     return item.submenu.length > 0 && this.isMenuOpen(item.id) && this.state.expanded;
   }
 
-  getChevronClass(menuId) {
-    return this.isMenuOpen(menuId) ? 'fa-chevron-down' : 'fa-chevron-right';
-  }
-
   hasToggleSubmenu(item) {
     return item.submenu && item.submenu.length > 0;
   }
@@ -211,6 +199,8 @@ export class Sidebar extends Component {
     onNavigate: { type: Function, optional: true },
     onSidebarToggle: { type: Function, optional: true }
   };
+
+  static components = { ImageIcon };
 
   static template = xml`
     <div class="sidebar bg-white shadow-sm border-end fixed-top" t-att-style="'width: ' + (state.expanded ? '240px' : '80px') + '; height: 100vh; z-index: 1000; transition: width 0.3s; display: flex; flex-direction: column;'">
@@ -228,26 +218,36 @@ export class Sidebar extends Component {
           </button>
         </div>
       </div>
-      <div class="sidebar-nav py-2" style="flex: 1; overflow-y: auto;">
+      <div class="sidebar-nav py-2 hide-scrollbar" style="flex: 1; overflow-y: auto;">
         <ul class="nav flex-column">
           <t t-foreach="menuItems" t-as="item" t-key="item.id">
             <li class="nav-item">
-              <a t-att-class="'nav-link d-flex ' + (state.expanded ? '' : 'flex-column justify-content-center') + ' align-items-center py-2 ' + (isActive(item.id) ? 'active bg-primary-subtle text-primary' : 'text-body')"
+              <a t-att-class="'nav-link d-flex mx-2' + (state.expanded ? '' : 'flex-column justify-content-center') + ' align-items-center py-2 ' + (isActive(item.id) ? 'active bg-primary text-white no-hover' : 'text-gray-700')"
                  t-att-href="item.href || '#'" t-on-click="(e) => handleItemClick(item, e)">
-                <i t-att-class="item.icon + ' ' + (state.expanded ? 'me-2' : '')" t-att-style="!state.expanded ? 'font-size: 1.2rem;' : ''"></i>
+                <ImageIcon 
+                  icon="item.id"
+                  class="state.expanded ? 'me-2' : ''" 
+                  style="!state.expanded ? 'font-size: 1.2rem;' : ''" />
                 <span t-if="state.expanded" t-esc="item.label"></span>
                 <t t-if="showSubmenuChevron(item)">
-                  <i t-att-class="'fa ' + getChevronClass(item.id) + ' ms-auto small'"></i>
+                  <svg t-if="!isMenuOpen(item.id)" class="ms-auto small" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                  </svg>
+                  <svg t-else="1" class="ms-auto small" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                    <path fill-rule="evenodd" d="M11.47 7.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
+                  </svg>
                 </t>
                 <t t-elif="showRightChevron(item)">
-                  <i class="fa fa-chevron-right ms-auto small"></i>
+                  <svg class="ms-auto small" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                    <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                  </svg>
                 </t>
               </a>
               <t t-if="showSubmenu(item)">
                 <ul class="nav flex-column ms-4 mt-1">
                   <t t-foreach="item.submenu" t-as="subItem" t-key="subItem.id">
                     <li class="nav-item">
-                      <a t-att-class="'nav-link py-1 ' + (isSubmenuActive(subItem.id) ? 'text-primary fw-medium' : 'text-body-secondary')"
+                      <a t-att-class="'nav-link py-1 ' + (isSubmenuActive(subItem.id) ? 'text-primary fw-medium no-hover-blue' : 'text-body-secondary')"
                          t-att-href="subItem.href" t-on-click="(e) => handleSubmenuClick(subItem.href, e)">
                         <span t-esc="subItem.label"></span>
                       </a>

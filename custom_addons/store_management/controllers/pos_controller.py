@@ -57,7 +57,13 @@ class StoreManagementController(http.Controller):
             return json.dumps({
                 'status': 'success',
                 'message': 'Product created successfully',
-                'product_id': product.id
+                'data': {
+                    'product_id': product.id,
+                    'name': name,
+                    'barcode': product.barcode,
+                    'price': list_price,
+
+                },
             })
 
         except Exception as e:

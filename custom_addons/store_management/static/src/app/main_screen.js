@@ -21,7 +21,7 @@ export class MainScreen extends Component {
 
     static template = xml`
         <div class="pos-main-container d-flex flex-row align-items-start gap-3">
-            <div class="order-section d-flex flex-column gap-3">
+            <div class="order-section h-90vh d-flex flex-column gap-3">
                 <OrderScreen />
                 <StoreFooter />
             </div>

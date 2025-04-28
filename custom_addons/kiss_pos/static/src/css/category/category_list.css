@@ -35,7 +35,11 @@
     background-color: #0056b3;
 }
 
-
-.test {
-    background-color: red !important;
+.label-style {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 16px;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    color: #808080;
 }

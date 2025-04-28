@@ -122,21 +122,15 @@ async uploadDataWithProgress(data) {
 
         if (existingProduct.length > 0) {
             const ep = existingProduct[0];
-
             const nameMatch = (ep.name || '').trim() === (item.item_name || '').trim();
             const codeMatch = (ep.default_code || '').trim() === (item.sku || '').trim();
             const descMatch = stripHtml(ep.description) === (item.description || '').trim();
             const priceMatch = parseFloat(ep.list_price).toFixed(2) === parseFloat(item.selling_price).toFixed(2);
 
             if (nameMatch && codeMatch && descMatch && priceMatch) {
-                console.log(`✅ Already up to date: ${item.barcode}`);
                 shouldUpload = false;
                 skippedItems++;
-            } else {
-                console.log(`🔄 Changes detected, updating: ${item.barcode}`);
             }
-        } else {
-            console.log(`➕ New product, creating: ${item.barcode}`);
         }
 
         if (shouldUpload) {
@@ -152,23 +146,20 @@ async uploadDataWithProgress(data) {
         if (shouldUpload) {
             message = `Uploading item ${processedItems} of ${totalItems}`;
         } else {
-            message = `Already up to date ${processedItems} of ${totalItems}`;
+            message = `All data is already up to date`;
         }
 
         if (isComplete) {
             if (uploadedItems > 0) {
                 message = `${progress}% Complete`;
             } else {
-                message = `All ${skippedItems} items already up to date`;
+                message = `All data is already up to date`;
             }
         }
 
         this.setProgress(progress, "progress-bar bg-blue-500", message);
     }
-
-    console.log(`✅ Upload finished. Skipped: ${skippedItems}, Uploaded: ${uploadedItems}`);
 }
-
 
 
     async sendToAPI(data) {
@@ -278,9 +269,14 @@ if (file && file.kind === "file" && !["text/csv", "application/vnd.openxmlformat
 
     static template = xml`
 <div class="p-10 bg-white font-sans text-gray-800 rounded shadow-md mx-auto" style="width: 97%; height: 950px; border: 1px solid #ddd;">
-    <div class="text-muted mb-2" style="margin-top: 3rem; margin-left: 1rem; font-size: 15px;">
-        Home / Item Management / <strong>Import Items</strong>
-    </div>
+  <div class="text-muted mb-2 d-flex align-items-center" style="margin-top: 3rem; margin-left: 1rem; font-size: 15px;">
+    <button type="button" class="btn btn-link p-0 me-2" t-on-click="navigateBack" style="text-decoration: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="black" class="bi bi-arrow-left" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+        </svg>
+    </button>
+    Home / Item Management / <strong>Import Items</strong>
+</div>
 
     <div class="mb-3" style="margin-left: 1rem; margin-top: 2rem;">
         <h2 class="text-3xl mb-6" style="font-weight: 900;">Import Items</h2>
@@ -311,7 +307,7 @@ if (file && file.kind === "file" && !["text/csv", "application/vnd.openxmlformat
 
     <div class="download-button-wrapper">
         <button t-on-click="onClickDownloadTemplate" class="download-button">
-            <i class="fa fa-file mr-2"></i>Download Template File
+            <i class="fa fa-file fa-2x mr-2" style="margin-right: 8px;"></i>Download Template File
         </button>
     </div>
 
@@ -336,18 +332,19 @@ if (file && file.kind === "file" && !["text/csv", "application/vnd.openxmlformat
         <p class="text-sm font-semibold" style="font-size:15px;" t-if="progressValue.value === 0">Supports .CSV, .XLSX files</p>
         <p class="text-sm font-semibold" style="font-size:15px;" t-if="progressValue.value === 0">Browse files</p>
 
-       <div class="flex items-center justify-center" t-if="progressValue.value === 100" style="height: 70px; width: 100%;">
-        <button t-on-click="navigateBack" class="download-button continue-button">
-            Continue
-        </button>
-    </div>
 
      <div class="flex items-center justify-center" t-if="progressValue.value === 30" style="height: 70px; width: 100%;">
         <button t-on-click="onTryagain" class="download-button tryagain-button">
             Try again
         </button>
     </div>
-   <p class="text-sm font-semibold different-file" style="font-size:16px; cursor: pointer;"  t-if="progressValue.value === 100" t-on-click="uploadDifferentFile">
+    <div class="flex items-center justify-center" t-if="progressValue.value === 100" style="height: 70px; width: 100%;">
+        <button t-on-click="navigateBack" class="download-button continue-button">
+            Continue
+        </button>
+    </div>
+
+   <p class="text-sm font-semibold different-file" style="font-size:16px; cursor: pointer;color: #2563eb !important; "  t-if="progressValue.value === 100" t-on-click="uploadDifferentFile">
     Upload a different file
     </p>
 

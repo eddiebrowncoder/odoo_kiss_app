@@ -35,6 +35,15 @@
     line-height: 16px;
     letter-spacing: 0px;
     vertical-align: middle;
+    color: #808080;
+}
+
+.input-text-style {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 100%;
+    letter-spacing: 0px;
+    color: #1A1A1A;
 }
 
 .category-table-header {
@@ -86,3 +95,13 @@
     color: #999;
 }
 /* Add more levels as needed */
+
+
+.modal-heading {
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 24px;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    color: #1A1A1A;
+}
