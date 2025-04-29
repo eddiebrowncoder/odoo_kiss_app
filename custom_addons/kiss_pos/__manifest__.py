@@ -13,6 +13,7 @@
             'kiss_pos/static/src/js/Category/*.js',
             'kiss_pos/static/src/js/Item/*.js',  
             'kiss_pos/static/src/js/Warehouse/*.js',  
+            'kiss_pos/static/src/js/Tax/*.js',  
             'kiss_pos/static/src/js/Common/*.js', 
             'kiss_pos/static/src/js/Export/*.js', 
             'kiss_pos/static/src/js/BulkEdit/*.js',

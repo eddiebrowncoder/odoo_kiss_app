@@ -19,6 +19,10 @@
     background-color: #f2f2f2 !important;
 }
 
+.bg-blue-200 {
+    background-color: #E5F0FF !important;
+}
+
 /* Cicular checkbox */
 .circular-checkbox {
     position: relative;

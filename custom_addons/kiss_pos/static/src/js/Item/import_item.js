@@ -228,9 +228,13 @@ if (file && file.kind === "file" && !["text/csv", "application/vnd.openxmlformat
     }
 
     onClickDownloadTemplate() {
-        const headers = [
+         const headers = [
             'item_name', 'barcode', 'sku', 'selling_price', 'category', 'cost', 'msrp',
-            'status', 'company', 'brand', 'on_hand', 'description',
+            'status', 'company', 'brand', 'on_hand', 'description', 'active', 'volume',
+            'weight', 'color', 'age_restriction', 'use_ebt', 'item_unit', 'packaging_type',
+            'srs_category', 'inventory_tracking', 'in_transit', 'reorder_point', 'restock_level',
+            'min_order_qty', 'size', 'dimension', 'vendor1_id', 'vendor2_id',
+            'parent_company_id', 'item_type'
         ];
 
         const csvContent = headers.join(',') + '\n';

@@ -9,6 +9,7 @@ import { AddItem } from "../Item/add_item";
 import { ImportItem } from "../Item/import_item";
 import { CategoryAdd } from "../Category/category_add";
 import { WarehouseList } from "../Warehouse/warehouse_list";
+import { TaxConfiguration } from "../Tax/tax_configuration";
 
 
 console.log("✅ Main Layout JS Loaded");
@@ -58,7 +59,9 @@ export class MainLayout extends Component {
     } else if (route.includes('/category_list')) {
       return 'category';
     }  else if (route.includes('/warehouse')) {
-      return 'settings';
+      return 'warehouse';
+    }else if (route.includes('/tax_configuration')) {
+      return 'tax_configuration';
     }else if (route.includes('/item_list') || route === '/') {
       return 'item';
     } else if (route.includes('/import_item')) {
@@ -75,7 +78,7 @@ export class MainLayout extends Component {
       return 'items';
     } else if (route.includes('/inventory')) {
       return 'inventory';
-    } else if (route.includes('/warehouse')) {
+    } else if (route.includes('/warehouse') || route.includes('/tax_configuration')) {
       return 'settings';
     }
     return 'home';
@@ -87,11 +90,15 @@ export class MainLayout extends Component {
       return 'category_management';
     } else if (route.includes('/item_list') || route.includes('/add_item') || route.includes('/import_item'))  {
       return 'item_management';
+    } else if (route.includes('/warehouse')) {
+      return 'warehouse_management';
+    } else if (route.includes('/tax_configuration')) {
+      return 'tax_configuration';
     }
     return '';
   }
 
-  static components = { Sidebar, ItemList, CategoryList, AddItem, ImportItem ,CategoryAdd, WarehouseList };
+  static components = { Sidebar, ItemList, CategoryList, AddItem, ImportItem ,CategoryAdd, WarehouseList, TaxConfiguration };
 
   static template = xml`
     <div class="d-flex">
@@ -107,18 +114,20 @@ export class MainLayout extends Component {
         <AddItem t-if="currentView === 'add_item'" onNavigate="navigateTo" />
         <ImportItem t-if="currentView === 'import_item'" onNavigate="navigateTo" />
         <CategoryAdd t-if="currentView === 'category_add'" onNavigate="navigateTo" />
-        <WarehouseList t-if="currentView === 'settings'" onNavigate="navigateTo" />
+        <WarehouseList t-if="currentView === 'warehouse'" onNavigate="navigateTo" />
+        <TaxConfiguration t-if="currentView === 'tax_configuration'" onNavigate="navigateTo" />
       </div>
     </div>
   `;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const el = document.getElementById("app-container");
   if (el) {
     const app = new App(MainLayout);
-    app.mount(el);
+    await app.mount(el);
     const mainLayoutInstance = app.__owl__.root.component;
+
     document.addEventListener('click', (event) => {
       const anchor = event.target.closest('a');
       if (anchor && anchor.href && anchor.href.startsWith(window.location.origin)) {
