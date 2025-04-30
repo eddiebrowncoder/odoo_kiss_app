@@ -12,6 +12,7 @@ export class BulkEdit extends Component {
         this.modalSize = useState({ width: '500px', height: '320px' });
         this.priceMethod = useState({ value: '' }); // set | increase | decrease
         this.unitType = useState({ value: '%' });   // % | ₹
+        this.items = useState([]);
 
     }
 
@@ -28,24 +29,34 @@ export class BulkEdit extends Component {
         }
     }
 
-async ConfirmSave() {
+
+  async ConfirmSave() {
     if (!this.selectedField.value || !this.newValue.value) {
         alert("Please select a field and enter a new value!");
         return;
     }
 
+    const selectedField = this.selectedField.value;
+    const isPriceUpdate = selectedField === 'price';
+    const isItemNameUpdate = selectedField === 'item';
+
+    const numericFields = ['price', 'cost', 'msrp', 'on_hand', 'in_transit', 'reorder_point', 'restock_level', 'min_order_qty'];
+    const many2oneFields = ['vendor1_id', 'vendor2_id', 'categ_id'];
+
     for (const item of this.props.items) {
         let productId = item.id;
         let product = null;
+        const fieldsToRead = ['id'];
+
+        if (isPriceUpdate) fieldsToRead.push('list_price');
 
         if (!productId) {
             const products = await rpc('/web/dataset/call_kw', {
                 model: 'product.template',
                 method: 'search_read',
                 args: [[['name', '=', item.name]]],
-                kwargs: { fields: ['id', 'list_price'] },
+                kwargs: { fields: fieldsToRead },
             });
-
             if (products.length > 0) {
                 product = products[0];
                 productId = product.id;
@@ -54,39 +65,131 @@ async ConfirmSave() {
                 continue;
             }
         } else {
-            // Always fetch the latest list_price from DB
             const products = await rpc('/web/dataset/call_kw', {
                 model: 'product.template',
                 method: 'read',
                 args: [[productId]],
-                kwargs: { fields: ['list_price'] },
+                kwargs: { fields: fieldsToRead },
             });
             product = products[0];
         }
 
-        const fieldToUpdate = {};
-        const inputValue = parseFloat(this.newValue.value);
-        const currentPrice = parseFloat(product.list_price || 0);
+        const fieldMap = {
+            item: 'name',
+            status: 'item_status',
+            cost: 'standard_price',
+            msrp: 'msrp',
+            brand: 'brand',
+            size: 'size',
+            dimension: 'dimension',
+            item_unit: 'item_unit',
+            packaging_type: 'packaging_type',
+            srs_category: 'srs_category',
+            color_name: 'color_name',
+            on_hand: 'on_hand',
+            inventory_tracking: 'inventory_tracking',
+            in_transit: 'in_transit',
+            reorder_point: 'reorder_point',
+            restock_level: 'restock_level',
+            min_order_qty: 'min_order_qty',
+            age_restriction: 'age_restriction',
+            use_ebt: 'use_ebt',
+            vendor1_id: 'vendor1_id',
+            vendor2_id: 'vendor2_id',
+            categ_id: 'categ_id',
+            item_type: 'item_type',
+            weight: 'weight',
+            volume: 'volume',
+        };
 
-        if (this.selectedField.value === 'item') {
-            fieldToUpdate['name'] = this.newValue.value;
-        } else if (this.selectedField.value === 'price') {
+        const fieldToUpdate = {};
+
+        if (isPriceUpdate) {
+            const inputValue = parseFloat(this.newValue.value);
+            const currentPrice = parseFloat(product.list_price || 0);
             if (this.priceMethod.value === 'set') {
                 fieldToUpdate['list_price'] = inputValue;
             } else if (this.priceMethod.value === 'increase') {
                 fieldToUpdate['list_price'] =
                     this.unitType.value === '%' ?
-                    currentPrice + (currentPrice * inputValue / 100) :
-                    currentPrice + inputValue;
+                        currentPrice + (currentPrice * inputValue / 100) :
+                        currentPrice + inputValue;
             } else if (this.priceMethod.value === 'decrease') {
                 fieldToUpdate['list_price'] =
                     this.unitType.value === '%' ?
-                    currentPrice - (currentPrice * inputValue / 100) :
-                    currentPrice - inputValue;
+                        currentPrice - (currentPrice * inputValue / 100) :
+                        currentPrice - inputValue;
+            }
+        } else if (isItemNameUpdate) {
+            fieldToUpdate['name'] = this.newValue.value;
+        } else {
+            const fieldName = fieldMap[selectedField];
+            if (fieldName) {
+                let value;
+                if (numericFields.includes(selectedField)) {
+                    value = parseFloat(this.newValue.value);
+                } else if (many2oneFields.includes(selectedField)) {
+                    const inputName = this.newValue.value.trim();
+
+                    if (selectedField === 'categ_id') {
+                        const existingCategory = await rpc('/web/dataset/call_kw', {
+                            model: 'product.category',
+                            method: 'search_read',
+                            args: [[['name', '=', inputName]]],
+                            kwargs: { fields: ['id'], limit: 1 },
+                        });
+
+                        let categoryId;
+                        if (existingCategory.length > 0) {
+                            categoryId = existingCategory[0].id;
+                        } else {
+                            categoryId = await rpc('/web/dataset/call_kw', {
+                                model: 'product.category',
+                                method: 'create',
+                                args: [{ name: inputName }],
+                                kwargs: {},
+                            });
+                            console.log(`Created new category "${inputName}" with ID ${categoryId}`);
+                        }
+
+                        value = categoryId;
+                    } else {
+                        const existingVendor = await rpc('/web/dataset/call_kw', {
+                            model: 'res.partner',
+                            method: 'search_read',
+                            args: [[['name', '=', inputName]]],
+                            kwargs: { fields: ['id'], limit: 1 },
+                        });
+
+                        let vendorId;
+                        if (existingVendor.length > 0) {
+                            vendorId = existingVendor[0].id;
+                        } else {
+                            vendorId = await rpc('/web/dataset/call_kw', {
+                                model: 'res.partner',
+                                method: 'create',
+                                args: [{
+                                    name: inputName,
+                                    supplier_rank: 1,
+                                }],
+                                kwargs: {},
+                            });
+                            console.log(` Created new vendor "${inputName}" with ID ${vendorId}`);
+                        }
+
+                        value = vendorId;
+                    }
+                } else {
+                    value = this.newValue.value;
+                }
+                fieldToUpdate[fieldName] = value;
+            } else {
+                console.warn(` No field mapping found for "${selectedField}"`);
             }
         }
 
         if (Object.keys(fieldToUpdate).length > 0) {
+            console.log(` Updating product ${productId} with:`, fieldToUpdate);
             await rpc('/web/dataset/call_kw', {
                 model: 'product.template',
                 method: 'write',
@@ -96,14 +199,20 @@ async ConfirmSave() {
         }
     }
 
-    alert('Products updated successfully!');
+    const res = await fetch("/api/item_list");
+    const result = await res.json();
+    console.log("📦 Fetched updated item list:", result);
+
     this.closeModal();
 }
 
 
 
-    closeModal() {
-        this.props.onClose();
+
+
+
+       closeModal() {
+        this.props.onClose?.();
     }
 
 
@@ -128,10 +237,38 @@ async ConfirmSave() {
                     <t t-if="!isPreview.value">
                         <!-- Step 1: Select field and new value -->
                         <div class="d-flex flex-column gap-3">
-                            <select t-model="selectedField.value" class="form-select" style="font-size: 15px;">
+                        <select t-model="selectedField.value" class="form-select"   style="font-size: 15px;">
+
                                 <option value="">Field to Modify</option>
                                 <option value="item">Item</option>
                                 <option value="price">Selling Price</option>
+                                <option value="cost">Cost </option>
+                                <option value="Sku">SKU </option>
+                                <option value="msrp">Msrp </option>
+                                <option value="status">Status </option>
+                                <option value="company_id">Company </option>
+                                <option value="parent_company_id">Parent Company </option>
+                                <option value="brand">Brand </option>
+                                <option value="age_restriction">Age Restriction </option>
+                                <option value="use_ebt">Use Ebt </option>
+                                <option value="categ_id">Category </option>
+                                <option value="volume">Volume </option>
+                                <option value="weight">Weight </option>
+                                <option value="vendor1_id">Vendor1 </option>
+                                <option value="vendor2_id">Vendor2 </option>
+                                <option value="item_type">Item Type </option>
+                                <option value="item_unit">Item Unit </option>
+                                <option value="packaging_type">Packaging Type </option>
+                                <option value="srs_category">Srs Category </option>
+                                <option value="in_transit">In Transit </option>
+                                <option value="reorder_point">Reorder Point </option>
+                                <option value="restock_level">Restock Level </option>
+                                <option value="min_order_qty">Min Order Qty </option>
+                                <option value="color">Color </option>
+                                <option value="size">Size </option>
+                                <option value="dimension">Dimension </option>
+                                <option value="on_hand">Dimension </option>
+                                <option value="inventory_tracking">Inventory Tracking </option>
                             </select>
 
                             <t t-if="selectedField.value === 'price'">
@@ -211,10 +348,6 @@ async ConfirmSave() {
                                      <i class="bi bi-arrow-down"></i>
                                     </th>
 
-                                     <th>ITEM
-                                     <i class="bi bi-arrow-up"></i>
-                                     <i class="bi bi-arrow-down"></i>
-                                    </th>
 
                                     <th>REVISED ITEM
                                      <i class="bi bi-arrow-up"></i>
@@ -227,7 +360,6 @@ async ConfirmSave() {
                                     <tr>
                                         <td><t t-esc="item.barcode"/></td>
                                         <td><t t-esc="item.sku"/></td>
-                                        <td><t t-esc="item.name"/></td>
                                         <td><t t-esc="item.name"/></td>
                                         <td><t t-esc="newValue.value"/></td>
                                     </tr>
@@ -301,13 +433,13 @@ style.textContent = `
 .input-wrapper {
   display: flex;
   align-items: center;
-  gap: 6px; /* Space between select and input */
+  gap: 6px;
   width: 100%;
   margin-top: 8px;
 }
 
 .form-select {
-  flex: 0 0 15%; /* Dropdown takes up 20% */
+  flex: 0 0 15%;
   padding: 8px 10px;
   font-size: 14px;
   border: 1px solid #ccc;
@@ -331,6 +463,12 @@ style.textContent = `
 .form-select.hide {
   display: none;
 }
+
+  select.form-select option {
+        padding: 4px 8px;
+        font-size: 14px;
+        line-height: 1.2;
+    }
 
 
 
