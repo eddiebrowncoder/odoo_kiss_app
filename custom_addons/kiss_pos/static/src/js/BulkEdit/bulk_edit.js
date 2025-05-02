@@ -1,6 +1,7 @@
 /** @odoo-module **/
 import { Component, useState, xml } from "@odoo/owl";
 import { rpc } from "@web/core/network/rpc";
+import { Toast } from "../Common/toast";
 
 
 export class BulkEdit extends Component {
@@ -8,16 +9,17 @@ export class BulkEdit extends Component {
         this.selectedField = useState({ value: '' });
         this.newValue = useState({ value: '' });
         this.isPreview = useState({ value: false });
-        // Initial modal size
         this.modalSize = useState({ width: '500px', height: '320px' });
-        this.priceMethod = useState({ value: '' }); // set | increase | decrease
-        this.unitType = useState({ value: '%' });   // % | ₹
+        this.priceMethod = useState({ value: '' });
+        this.unitType = useState({ value: '%' });
         this.items = useState([]);
+        this.ConfirmSave = this.ConfirmSave.bind(this);
+
 
     }
 
     SelectedItem() {
-        console.log('Selected Field:', this.selectedField.value, this.props.items);
+        console.log('Selected Field:', this.selectedField.value, this.props);
         console.log('New Value:', this.newValue.value);
 
         if (this.selectedField.value && this.newValue.value) {
@@ -25,14 +27,15 @@ export class BulkEdit extends Component {
             this.modalSize.width = '850px';
             this.modalSize.height = '500px';
         } else {
-            alert("Please select a field and enter a new value!");
+            Toast.error('Please select a field and enter a new value!');
+
         }
     }
 
 
   async ConfirmSave() {
     if (!this.selectedField.value || !this.newValue.value) {
-        alert("Please select a field and enter a new value!");
+        Toast.error('Please select a field and enter a new value!');
         return;
     }
 
@@ -201,17 +204,13 @@ export class BulkEdit extends Component {
 
     const res = await fetch("/api/item_list");
     const result = await res.json();
-    console.log("📦 Fetched updated item list:", result);
-
+    console.log(" Fetched updated item list:", result);
     this.closeModal();
+    Toast.success("Item Edit successfully!");
+
 }
 
-
-
-
-
-
-       closeModal() {
+    closeModal() {
         this.props.onClose?.();
     }
 
@@ -243,7 +242,6 @@ export class BulkEdit extends Component {
                                 <option value="item">Item</option>
                                 <option value="price">Selling Price</option>
                                 <option value="cost">Cost </option>
-                                <option value="Sku">SKU </option>
                                 <option value="msrp">Msrp </option>
                                 <option value="status">Status </option>
                                 <option value="company_id">Company </option>
@@ -267,7 +265,7 @@ export class BulkEdit extends Component {
                                 <option value="color">Color </option>
                                 <option value="size">Size </option>
                                 <option value="dimension">Dimension </option>
-                                <option value="on_hand">Dimension </option>
+                                <option value="on_hand">on Hand </option>
                                 <option value="inventory_tracking">Inventory Tracking </option>
                             </select>
 
@@ -343,28 +341,51 @@ export class BulkEdit extends Component {
                                      <i class="bi bi-arrow-up"></i>
                                      <i class="bi bi-arrow-down"></i>
                                     </th>
-                                    <th>ITEM
+                                    <th>
+                                  <span style="text-transform: uppercase; font-weight: bold;">
+                                        <t t-esc="selectedField.value"/>
+                                    </span>
                                      <i class="bi bi-arrow-up"></i>
                                      <i class="bi bi-arrow-down"></i>
                                     </th>
 
-
-                                    <th>REVISED ITEM
+                                <th style="background-color: #E8F5FF;">
+                                        REVISED ITEM
                                      <i class="bi bi-arrow-up"></i>
                                     <i class="bi bi-arrow-down"></i>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <t t-foreach="props.items" t-as="item" t-key="item.id">
-                                    <tr>
-                                        <td><t t-esc="item.barcode"/></td>
-                                        <td><t t-esc="item.sku"/></td>
-                                        <td><t t-esc="item.name"/></td>
-                                        <td><t t-esc="newValue.value"/></td>
-                                    </tr>
-                                </t>
-                            </tbody>
+                         <tbody>
+                            <t t-foreach="props.items" t-as="item" t-key="item.id">
+                                <tr>
+                                    <td><t t-esc="item.barcode"/></td>
+                                    <td><t t-esc="item.sku"/></td>
+                                   <td>
+                                      <t t-esc="{
+                                            'item': item.name,
+                                            'cost': item.cost,
+                                            'price': item.unit_price,
+                                            'categ_id': item.category,
+                                            'item_type': item.item_type,
+                                            'vendor1_id': item.supplier,
+                                            'vendor2_id': item.supplier,
+                                            'volume': item.volume,
+                                            'weight': item.weight,
+                                            'status': item.status,
+                                            'msrp': item.msrp,
+                                            'age_restriction': item.age_restriction
+                                        }[selectedField.value]"/>
+                                    </td>
+                                    <td style="background-color: #E8F5FF;">
+                                        <t t-if="newValue">
+                                            <t t-esc="newValue.value"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+
                         </table>
                     </t>
                 </div>
