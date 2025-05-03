@@ -199,8 +199,6 @@ export class WarehouseList extends Component {
                     context: {},
                 }
             });
-
-            // console.log("loadStatesForCountry statesResult:", statesResult);
             
             if (statesResult) {
                 // Cache the states for this country
@@ -612,8 +610,8 @@ export class WarehouseList extends Component {
     </div>
 
     <!-- Warehouse List Table -->
-    <div class="card">
-        <div class="card-body p-0">
+    <div class="">
+        <div class="p-0">
             <table class="table m-0">
                 <thead class="table-header-style">
                     <tr>
@@ -639,7 +637,7 @@ export class WarehouseList extends Component {
                         </tr>
                     </t>
                     <t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id">
-                        <tr t-on-click="() => this.openUpdateModal(warehouse)">
+                        <tr class="cursor-pointer" t-on-click="() => this.openUpdateModal(warehouse)">
                             <td class="ps-4 table-td-style" t-esc="warehouse.name"></td>
                             <td class="table-td-style" t-esc="warehouse.address"></td>
                             <td>

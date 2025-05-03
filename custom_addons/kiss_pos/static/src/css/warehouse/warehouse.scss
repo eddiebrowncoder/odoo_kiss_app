@@ -1,5 +1,5 @@
 .breadcrumb-item a {
-    color: #adb5bd;
+    color: #adb5bd !important;
     text-decoration: none;
   }
   
@@ -9,7 +9,7 @@
   }
   
   .breadcrumb-item + .breadcrumb-item::before {
-    color: #adb5bd;
+    color: #adb5bd !important;
   }
 
   .testclass {

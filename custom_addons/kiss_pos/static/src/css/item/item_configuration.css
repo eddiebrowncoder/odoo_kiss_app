@@ -1,0 +1,113 @@
+/* Custom CSS for Item Configuration module */
+
+/* Card styling */
+.configuration-cards .card:first-of-type {
+    border-radius: 7px 7px 0 0;
+}
+.configuration-cards .card-body:first-of-type {
+    border-radius: 7px 7px 0 0;
+}
+.configuration-cards .card:nth-of-type(2) {
+    border-radius: 0 0 7px 7px;
+}
+.configuration-cards .card-body:nth-of-type(2) {
+    border-radius: 0 0 7px 7px;
+}
+
+/* Switch styling */
+.form-check-input:checked {
+    background-color: #99C2FF;
+    border-color: #99C2FF;
+}
+
+.form-check-input:focus {
+    box-shadow: none;
+}
+
+.form-check:hover {
+    border-color: #99C2FF;
+}
+
+.form-switch .form-check-input {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='4' fill='white'/%3e%3c/svg%3e");
+    background-color: #D9D9D9;
+    border-color: #D9D9D9;
+}
+
+.form-switch .form-check-input:checked {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='4' fill='%230070FF'/%3e%3c/svg%3e");
+    background-color: #99C2FF;
+    border-color: #99C2FF;
+}
+
+/* Badge styling for question mark */
+.badge.rounded-circle {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    background-color: #6c757d;
+    cursor: pointer;
+}
+
+/* Tooltip styling */
+.tooltip-content {
+    font-size: 14px;
+    line-height: 1.5;
+    width: 500px;
+    top: 30px;
+    left: 0;
+    border-radius: 8px;
+    z-index: 1;
+}
+
+.tooltip-content ul {
+    margin-bottom: 10px;
+}
+
+/* Dropdown styling */
+.fa-chevron-down {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* Text styling */
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Breadcrumb styling */
+.breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item.breadcrum-item-dark {
+    color: #343a40;
+    font-weight: 500;
+}
+
+/* Switch size adjustments */
+.form-switch .form-check-input {
+    cursor: pointer;
+    height: 1.5em;
+    width: 3em;
+}
+
+/* Heading styles */
+.heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.border-gray-solid {
+    border: 1px solid#d9d9d9;
+}

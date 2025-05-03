@@ -14,8 +14,6 @@ export class BulkEdit extends Component {
         this.unitType = useState({ value: '%' });
         this.items = useState([]);
         this.ConfirmSave = this.ConfirmSave.bind(this);
-
-
     }
 
     SelectedItem() {
@@ -32,189 +30,183 @@ export class BulkEdit extends Component {
         }
     }
 
-
-  async ConfirmSave() {
-    if (!this.selectedField.value || !this.newValue.value) {
-        Toast.error('Please select a field and enter a new value!');
-        return;
-    }
-
-    const selectedField = this.selectedField.value;
-    const isPriceUpdate = selectedField === 'price';
-    const isItemNameUpdate = selectedField === 'item';
-
-    const numericFields = ['price', 'cost', 'msrp', 'on_hand', 'in_transit', 'reorder_point', 'restock_level', 'min_order_qty'];
-    const many2oneFields = ['vendor1_id', 'vendor2_id', 'categ_id'];
-
-    for (const item of this.props.items) {
-        let productId = item.id;
-        let product = null;
-        const fieldsToRead = ['id'];
-
-        if (isPriceUpdate) fieldsToRead.push('list_price');
-
-        if (!productId) {
-            const products = await rpc('/web/dataset/call_kw', {
-                model: 'product.template',
-                method: 'search_read',
-                args: [[['name', '=', item.name]]],
-                kwargs: { fields: fieldsToRead },
-            });
-            if (products.length > 0) {
-                product = products[0];
-                productId = product.id;
-            } else {
-                console.warn(`Product not found for name: ${item.name}`);
-                continue;
-            }
-        } else {
-            const products = await rpc('/web/dataset/call_kw', {
-                model: 'product.template',
-                method: 'read',
-                args: [[productId]],
-                kwargs: { fields: fieldsToRead },
-            });
-            product = products[0];
+      async ConfirmSave() {
+        if (!this.selectedField.value || !this.newValue.value) {
+            Toast.error('Please select a field and enter a new value!');
+            return;
         }
 
-        const fieldMap = {
-            item: 'name',
-            status: 'item_status',
-            cost: 'standard_price',
-            msrp: 'msrp',
-            brand: 'brand',
-            size: 'size',
-            dimension: 'dimension',
-            item_unit: 'item_unit',
-            packaging_type: 'packaging_type',
-            srs_category: 'srs_category',
-            color_name: 'color_name',
-            on_hand: 'on_hand',
-            inventory_tracking: 'inventory_tracking',
-            in_transit: 'in_transit',
-            reorder_point: 'reorder_point',
-            restock_level: 'restock_level',
-            min_order_qty: 'min_order_qty',
-            age_restriction: 'age_restriction',
-            use_ebt: 'use_ebt',
-            vendor1_id: 'vendor1_id',
-            vendor2_id: 'vendor2_id',
-            categ_id: 'categ_id',
-            item_type: 'item_type',
-            weight: 'weight',
-            volume: 'volume',
-        };
+        const selectedField = this.selectedField.value;
+        const isPriceUpdate = selectedField === 'price';
+        const isItemNameUpdate = selectedField === 'item';
 
-        const fieldToUpdate = {};
+        const numericFields = ['price', 'cost', 'msrp', 'on_hand', 'in_transit', 'reorder_point', 'restock_level', 'min_order_qty'];
+        const many2oneFields = ['vendor1_id', 'vendor2_id', 'categ_id'];
 
-        if (isPriceUpdate) {
-            const inputValue = parseFloat(this.newValue.value);
-            const currentPrice = parseFloat(product.list_price || 0);
-            if (this.priceMethod.value === 'set') {
-                fieldToUpdate['list_price'] = inputValue;
-            } else if (this.priceMethod.value === 'increase') {
-                fieldToUpdate['list_price'] =
-                    this.unitType.value === '%' ?
-                        currentPrice + (currentPrice * inputValue / 100) :
-                        currentPrice + inputValue;
-            } else if (this.priceMethod.value === 'decrease') {
-                fieldToUpdate['list_price'] =
-                    this.unitType.value === '%' ?
-                        currentPrice - (currentPrice * inputValue / 100) :
-                        currentPrice - inputValue;
-            }
-        } else if (isItemNameUpdate) {
-            fieldToUpdate['name'] = this.newValue.value;
-        } else {
-            const fieldName = fieldMap[selectedField];
-            if (fieldName) {
-                let value;
-                if (numericFields.includes(selectedField)) {
-                    value = parseFloat(this.newValue.value);
-                } else if (many2oneFields.includes(selectedField)) {
-                    const inputName = this.newValue.value.trim();
+        for (const item of this.props.items) {
+            let productId = item.id;
+            let product = null;
+            const fieldsToRead = ['id'];
 
-                    if (selectedField === 'categ_id') {
-                        const existingCategory = await rpc('/web/dataset/call_kw', {
-                            model: 'product.category',
-                            method: 'search_read',
-                            args: [[['name', '=', inputName]]],
-                            kwargs: { fields: ['id'], limit: 1 },
-                        });
+            if (isPriceUpdate) fieldsToRead.push('list_price');
 
-                        let categoryId;
-                        if (existingCategory.length > 0) {
-                            categoryId = existingCategory[0].id;
-                        } else {
-                            categoryId = await rpc('/web/dataset/call_kw', {
-                                model: 'product.category',
-                                method: 'create',
-                                args: [{ name: inputName }],
-                                kwargs: {},
-                            });
-                            console.log(`Created new category "${inputName}" with ID ${categoryId}`);
-                        }
-
-                        value = categoryId;
-                    } else {
-                        const existingVendor = await rpc('/web/dataset/call_kw', {
-                            model: 'res.partner',
-                            method: 'search_read',
-                            args: [[['name', '=', inputName]]],
-                            kwargs: { fields: ['id'], limit: 1 },
-                        });
-
-                        let vendorId;
-                        if (existingVendor.length > 0) {
-                            vendorId = existingVendor[0].id;
-                        } else {
-                            vendorId = await rpc('/web/dataset/call_kw', {
-                                model: 'res.partner',
-                                method: 'create',
-                                args: [{
-                                    name: inputName,
-                                    supplier_rank: 1,
-                                }],
-                                kwargs: {},
-                            });
-                            console.log(` Created new vendor "${inputName}" with ID ${vendorId}`);
-                        }
-
-                        value = vendorId;
-                    }
+            if (!productId) {
+                const products = await rpc('/web/dataset/call_kw', {
+                    model: 'product.template',
+                    method: 'search_read',
+                    args: [[['name', '=', item.name]]],
+                    kwargs: { fields: fieldsToRead },
+                });
+                if (products.length > 0) {
+                    product = products[0];
+                    productId = product.id;
                 } else {
-                    value = this.newValue.value;
+                    console.warn(`Product not found for name: ${item.name}`);
+                    continue;
                 }
-                fieldToUpdate[fieldName] = value;
             } else {
-                console.warn(` No field mapping found for "${selectedField}"`);
+                const products = await rpc('/web/dataset/call_kw', {
+                    model: 'product.template',
+                    method: 'read',
+                    args: [[productId]],
+                    kwargs: { fields: fieldsToRead },
+                });
+                product = products[0];
+            }
+
+            const fieldMap = {
+                item: 'name',
+                status: 'item_status',
+                cost: 'standard_price',
+                msrp: 'msrp',
+                brand: 'brand',
+                size: 'size',
+                dimension: 'dimension',
+                item_unit: 'item_unit',
+                packaging_type: 'packaging_type',
+                srs_category: 'srs_category',
+                color_name: 'color_name',
+                on_hand: 'on_hand',
+                inventory_tracking: 'inventory_tracking',
+                in_transit: 'in_transit',
+                reorder_point: 'reorder_point',
+                restock_level: 'restock_level',
+                min_order_qty: 'min_order_qty',
+                age_restriction: 'age_restriction',
+                use_ebt: 'use_ebt',
+                vendor1_id: 'vendor1_id',
+                vendor2_id: 'vendor2_id',
+                categ_id: 'categ_id',
+                item_type: 'item_type',
+                weight: 'weight',
+                volume: 'volume',
+                sku: 'default_code',
+                tax_code: 'tax_code',
+            };
+
+            const fieldToUpdate = {};
+
+            if (isPriceUpdate) {
+                const inputValue = parseFloat(this.newValue.value);
+                const currentPrice = parseFloat(product.list_price || 0);
+                if (this.priceMethod.value === 'set') {
+                    fieldToUpdate['list_price'] = inputValue;
+                } else if (this.priceMethod.value === 'increase') {
+                    fieldToUpdate['list_price'] =
+                        this.unitType.value === '%' ?
+                            currentPrice + (currentPrice * inputValue / 100) :
+                            currentPrice + inputValue;
+                } else if (this.priceMethod.value === 'decrease') {
+                    fieldToUpdate['list_price'] =
+                        this.unitType.value === '%' ?
+                            currentPrice - (currentPrice * inputValue / 100) :
+                            currentPrice - inputValue;
+                }
+            } else if (isItemNameUpdate) {
+                fieldToUpdate['name'] = this.newValue.value;
+            } else {
+                const fieldName = fieldMap[selectedField];
+                if (fieldName) {
+                    let value;
+                    if (numericFields.includes(selectedField)) {
+                        value = parseFloat(this.newValue.value);
+                    } else if (many2oneFields.includes(selectedField)) {
+                        const inputName = this.newValue.value.trim();
+
+                        if (selectedField === 'categ_id') {
+                            const existingCategory = await rpc('/web/dataset/call_kw', {
+                                model: 'product.category',
+                                method: 'search_read',
+                                args: [[['name', '=', inputName]]],
+                                kwargs: { fields: ['id'], limit: 1 },
+                            });
+
+                            let categoryId;
+                            if (existingCategory.length > 0) {
+                                categoryId = existingCategory[0].id;
+                            } else {
+                                categoryId = await rpc('/web/dataset/call_kw', {
+                                    model: 'product.category',
+                                    method: 'create',
+                                    args: [{ name: inputName }],
+                                    kwargs: {},
+                                });
+                                console.log(`Created new category "${inputName}" with ID ${categoryId}`);
+                            }
+
+                            value = categoryId;
+                        } else {
+                            const existingVendor = await rpc('/web/dataset/call_kw', {
+                                model: 'res.partner',
+                                method: 'search_read',
+                                args: [[['name', '=', inputName]]],
+                                kwargs: { fields: ['id'], limit: 1 },
+                            });
+
+                            let vendorId;
+                            if (existingVendor.length > 0) {
+                                vendorId = existingVendor[0].id;
+                            } else {
+                                vendorId = await rpc('/web/dataset/call_kw', {
+                                    model: 'res.partner',
+                                    method: 'create',
+                                    args: [{
+                                        name: inputName,
+                                        supplier_rank: 1,
+                                    }],
+                                    kwargs: {},
+                                });
+                                console.log(` Created new vendor "${inputName}" with ID ${vendorId}`);
+                            }
+
+                            value = vendorId;
+                        }
+                    } else {
+                        value = this.newValue.value;
+                    }
+                    fieldToUpdate[fieldName] = value;
+                } else {
+                    console.warn(` No field mapping found for "${selectedField}"`);
+                }
+            }
+
+            if (Object.keys(fieldToUpdate).length > 0) {
+                console.log(` Updating product ${productId} with:`, fieldToUpdate);
+                await rpc('/web/dataset/call_kw', {
+                    model: 'product.template',
+                    method: 'write',
+                    args: [[productId], fieldToUpdate],
+                    kwargs: {},
+                });
             }
         }
-
-        if (Object.keys(fieldToUpdate).length > 0) {
-            console.log(` Updating product ${productId} with:`, fieldToUpdate);
-            await rpc('/web/dataset/call_kw', {
-                model: 'product.template',
-                method: 'write',
-                args: [[productId], fieldToUpdate],
-                kwargs: {},
-            });
-        }
-    }
-
-    const res = await fetch("/api/item_list");
-    const result = await res.json();
-    console.log(" Fetched updated item list:", result);
-    this.closeModal();
-    Toast.success("Item Edit successfully!");
-
+        Toast.success("Item Edit successfully!");
+        this.closeModal()
 }
 
     closeModal() {
-        this.props.onClose?.();
-    }
-
-
+       this.props.onClose();
+        }
 
     static template = xml`
     <div class="modal fade show d-block" style="background-color: rgba(0, 0, 0, 0.5);">
@@ -240,6 +232,7 @@ export class BulkEdit extends Component {
 
                                 <option value="">Field to Modify</option>
                                 <option value="item">Item</option>
+                                <option value="sku">Sku</option>
                                 <option value="price">Selling Price</option>
                                 <option value="cost">Cost </option>
                                 <option value="msrp">Msrp </option>
@@ -267,6 +260,7 @@ export class BulkEdit extends Component {
                                 <option value="dimension">Dimension </option>
                                 <option value="on_hand">on Hand </option>
                                 <option value="inventory_tracking">Inventory Tracking </option>
+                                <option value="tax_code">Tax Code </option>
                             </select>
 
                             <t t-if="selectedField.value === 'price'">
@@ -305,18 +299,14 @@ export class BulkEdit extends Component {
                          placeholder="0.00"
                          step="0.01"
                          t-attf-class="#{ priceMethod.value === 'set' ? 'form-control full-width' : 'form-control' }" />
-                </div>
-                              </div>
+                    </div>
+                          </div>
                             </t>
-
                             <t t-if="selectedField.value !== 'price'">
                             <input type="text" t-model="newValue.value" class="form-control" placeholder="New Value"/>
                             </t>
-
                         </div>
                     </t>
-
-
                 <t t-else="">
              <div class="alert alert-warning d-flex align-items-center gap-3" role="alert">
                 <i class="fa fa-exclamation-triangle" style="color: black; font-size: 24px;"></i>
@@ -327,12 +317,10 @@ export class BulkEdit extends Component {
                     <p class="mb-0">New Value: <strong><t t-esc="newValue.value"/></strong></p>
                 </div>
             </div>
-
                         <table class="table table-hover">
                             <thead>
                                 <tr>
                                 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
-
                                     <th>BARCODE
                                     <i class="bi bi-arrow-up"></i>
                                     <i class="bi bi-arrow-down"></i>
@@ -348,7 +336,6 @@ export class BulkEdit extends Component {
                                      <i class="bi bi-arrow-up"></i>
                                      <i class="bi bi-arrow-down"></i>
                                     </th>
-
                                 <th style="background-color: #E8F5FF;">
                                         REVISED ITEM
                                      <i class="bi bi-arrow-up"></i>
@@ -374,7 +361,21 @@ export class BulkEdit extends Component {
                                             'weight': item.weight,
                                             'status': item.status,
                                             'msrp': item.msrp,
-                                            'age_restriction': item.age_restriction
+                                            'age_restriction': item.age_restriction,
+                                            'brand': item.brand,
+                                            'size': item.size,
+                                            'dimension': item.dimension,
+                                            'item_unit': item.item_unit,
+                                            'packaging_type': item.packaging_type,
+                                            'srs_category': item.srs_category,
+                                            'on_hand': item.on_hand,
+                                            'color_name': item.color_name,
+                                            'in_transit': item.in_transit,
+                                            'reorder_point': item.reorder_point,
+                                            'restock_level': item.restock_level,
+                                            'min_order_qty': item.min_order_qty,
+                                            'inventory_tracking': item.inventory_tracking,
+                                            'sku': item.sku,
                                         }[selectedField.value]"/>
                                     </td>
                                     <td style="background-color: #E8F5FF;">
@@ -385,7 +386,6 @@ export class BulkEdit extends Component {
                                 </tr>
                             </t>
                         </tbody>
-
                         </table>
                     </t>
                 </div>

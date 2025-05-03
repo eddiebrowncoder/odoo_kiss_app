@@ -2,6 +2,7 @@
 
 import { Component, useState, xml } from '@odoo/owl';
 import { Toast } from '../alerts/toast';
+import { ImageIcon } from '../ImageIcon';
 
 export class AddCustomer extends Component {
     setup() {
@@ -170,6 +171,8 @@ export class AddCustomer extends Component {
         return stateMap[stateName] || false;
     }
 
+    static components = { ImageIcon };
+
     static template = xml`
         <div class="modal fade show d-block" style="background-color: rgba(0, 0, 0, 0.5);">
             <div class="modal-dialog modal-dialog-centered">
@@ -210,11 +213,11 @@ export class AddCustomer extends Component {
                         <!-- Customer Avatar -->
                         <div class="text-center mb-4">
                             <div class="position-relative d-inline-block">
-                                <div class="rounded-circle bg-primary bg-opacity-10 p-4" style="width: 80px; height: 80px;">
-                                    <i class="bi bi-person-fill text-primary fs-1"></i>
+                                <div class="rounded-circle p-3 dark-gray" style="width: 80px; height: 80px;">
+                                    <ImageIcon name="'profile'" class="'text-white'" width="40" height="40" />
                                 </div>
-                                <span class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-1">
-                                    <i class="bi bi-pencil-fill text-white small"></i>
+                                <span class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-1 edit-profile">
+                                    <ImageIcon name="'pencil'" class="'text-white'" width="18" height="18" />
                                 </span>
                             </div>
                         </div>

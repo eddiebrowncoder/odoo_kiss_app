@@ -18,7 +18,7 @@ class ProductTemplate(models.Model):
                                 help="Secondary vendor/supplier for this product")
     
     # Product details
-    brand = fields.Char(string='Brand', help="Brand name of the product")
+    tax_code =fields.Char(string='Tax Code', help="Tax code for the product")
     size = fields.Char(string='Size', help="Size of the product")
     dimension = fields.Char(string='Dimensions', help="Dimensions of the product")
     item_unit = fields.Char(string='Item Unit', help="Unit of measurement for the item")

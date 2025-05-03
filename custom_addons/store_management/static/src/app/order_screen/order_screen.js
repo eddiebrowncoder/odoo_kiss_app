@@ -6,6 +6,8 @@ import { OpenItem } from '../components/modals/OpenItem';
 import { CustomerList } from '../components/modals/CustomerList';
 import { AddCustomer } from '../components/modals/AddCustomer';
 import { Toast } from '../components/alerts/toast';
+import { OrderNotFound } from '../components/modals/OrderNotFound';
+import { ImageIcon } from '../components/ImageIcon';
 
 export class OrderScreen extends Component {
     setup() {
@@ -21,6 +23,7 @@ export class OrderScreen extends Component {
             showAddItemModal: false,
             showCustomerListModal: false,
             showAddCustomerModal: false,
+            showOrderNotFoundModal: false,
             storeId: 1,
         });
 
@@ -37,10 +40,16 @@ export class OrderScreen extends Component {
         this.openAddCustomerModal = this.openAddCustomerModal.bind(this);
         this.closeAddCustomerModal = this.closeAddCustomerModal.bind(this);
         this.handleCustomerAdded = this.handleCustomerAdded.bind(this);
+        this.closeOrderNotFoundModal = this.closeOrderNotFoundModal.bind(this);
+        this.handleSearch = this.handleSearch.bind(this);
 
         onMounted(async () => {
             await this.fetchOrders();
         });
+    }
+
+    closeOrderNotFoundModal() {
+        this.state.showOrderNotFoundModal = false;
     }
 
     openCustomerModal() {
@@ -115,6 +124,14 @@ export class OrderScreen extends Component {
     handleSearch(event) {
         this.state.searchQuery = event.target.value;
         this.state.currentPage = 1;
+
+        if (event.target.value.trim().length > 0) {
+            setTimeout(() => {
+                if (this.filteredItems.length === 0) {
+                    this.state.showOrderNotFoundModal = true;
+                }
+            }, 2500);
+        }
     }
 
     get filteredItems() {
@@ -292,25 +309,22 @@ export class OrderScreen extends Component {
         }
     }
 
-    static components = { AddItem, OpenItem, CustomerList, AddCustomer   };
+    static components = { AddItem, OpenItem, CustomerList, AddCustomer, OrderNotFound, ImageIcon };
 
     static template = xml`
         <div class="order-screen h-100 d-flex flex-column bg-white">
             <div class="action-buttons d-flex pb-2 align-items-center gap-2">
                 <button class="btn btn-light d-flex flex-row align-items-center gap-1" t-on-click="clearOrder">
-                    <i class="fa fa-trash me-1"></i> Clear Order
+                    <ImageIcon name="'bin'" class="'me-1'" width="18" height="18" /> Clear Order
                 </button>
                 <button class="btn btn-light d-flex flex-row align-items-center gap-1">
-                    <i class="fa fa-pause-circle me-1"></i> Hold Order
+                    <ImageIcon name="'hold'" class="'me-1'" width="18" height="18" /> Hold Order
                 </button>
                 <button class="btn btn-light d-flex flex-row align-items-center gap-1">
-                    <svg stroke="currentColor" fill="currentColor" stroke-width="0.5" viewBox="0 0 24 24" aria-hidden="true" height="20px" width="20px" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M21.53 9.53a.75.75 0 0 1-1.06 0l-4.72-4.72V15a6.75 6.75 0 0 1-13.5 0v-3a.75.75 0 0 1 1.5 0v3a5.25 5.25 0 1 0 10.5 0V4.81L9.53 9.53a.75.75 0 0 1-1.06-1.06l6-6a.75.75 0 0 1 1.06 0l6 6a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd"></path>
-                    </svg>
-                    Recall Order
+                    <ImageIcon name="'recall'" class="'me-1'" width="18" height="18" /> Recall Order
                 </button>
                 <button class="btn btn-light d-flex flex-row align-items-center gap-1">
-                    <i class="fa fa-sticky-note me-1"></i> Order Note
+                    <ImageIcon name="'document'" class="'me-1'" width="18" height="18" /> Order Note
                 </button>
                 <button class="btn text-primary ms-auto" t-on-click="openCustomerModal">
                     <i class="fa fa-address-card me-1"></i> Link Customer
@@ -400,6 +414,9 @@ export class OrderScreen extends Component {
             </t>
             <t t-if="state.showAddCustomerModal">
                 <AddCustomer onClose="closeAddCustomerModal" onSuccess="handleCustomerAdded" />
+            </t>
+            <t t-if="state.showOrderNotFoundModal">
+                <OrderNotFound onClose="closeOrderNotFoundModal" onConfirm="openAddItemModal" searchQuery="state.searchQuery" />
             </t>
         </div>
     `;

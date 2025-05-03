@@ -87,3 +87,200 @@ label {
     font-size: 16px;
     cursor: pointer;
 }
+
+.text-gray-1000 {
+    color: #1A1A1A;
+  }
+  
+  .fw-500 {
+    font-weight: 500;
+  }
+
+  .filter-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.filter-content {
+    z-index: 1001;
+    position:absolute;
+    width: 100%;
+    top:147px;
+}
+
+.filter-sidebar {
+    border-radius: 8px;
+}
+
+.filter-options {
+    width: -webkit-fill-available
+}
+
+.filter-options .filter-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.filter-options .filter-item {
+    color: #1A1A1A
+}
+
+.filter-options .filter-item:hover {
+    background-color: #E5F0FF;
+    color: #1A1A1A
+}
+
+.filter-options .filter-item.active {
+    background-color: #E5F0FF;
+    color: #1A1A1A;
+}
+
+.options-panel {
+    max-height: 440px;
+    overflow-y: auto; /* <--- Change this from scroll to auto */
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.options-list {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 1rem;
+    min-height: 0;
+}
+
+.options-panel-footer {
+    position: sticky;
+    bottom: 0;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Price range slider styles */
+.price-slider-container {
+    height: 40px;
+    padding: 0 10px;
+}
+
+.price-range-base {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: #D9D9D9;
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+
+.price-range-track {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    background-color: #1A1A1A;
+    transform: translateY(-50%);
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+.form-range {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.form-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1A1A1A;
+    border: 2px solid white;
+    z-index: 2;
+    position: relative;
+}
+
+.form-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #1A1A1A;
+    border: 2px solid white;
+    z-index: 2;
+    position: relative;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  background-color: #1a1a1a;
+  border: 2px solid #1a1a1a; /* Border color */
+  box-shadow: none; /* Removes default blue outline */
+}
+
+input[type="range"]::-webkit-slider-thumb:active,
+input[type="range"]::-webkit-slider-thumb:focus {
+  background-color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+  box-shadow: none !important;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+  box-shadow: none;
+}
+
+input[type="range"]::-moz-range-thumb:active,
+input[type="range"]::-moz-range-thumb:focus {
+  background-color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+  box-shadow: none;
+}
+
+input[type="range"]::-ms-thumb {
+  background-color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+  box-shadow: none;
+}
+
+input[type="range"]::-ms-thumb:active,
+input[type="range"]::-ms-thumb:focus {
+  background-color: #1a1a1a;
+  border: 2px solid #1a1a1a;
+  box-shadow: none;
+}
+
+.form-range:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Also remove box-shadow from the thumb itself */
+.form-range::-webkit-slider-thumb:focus {
+  box-shadow: none !important;
+}
+.form-range::-moz-range-thumb:focus {
+  box-shadow: none !important;
+}
+.form-range::-ms-thumb:focus {
+  box-shadow: none !important;
+}
+.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+}

@@ -1,4 +1,5 @@
 import { Component, useState, xml } from "@odoo/owl";
+import { ImageIcon } from "../components/ImageIcon";
 
 export class StoreHeader extends Component {
     setup() {
@@ -22,18 +23,20 @@ export class StoreHeader extends Component {
         // Add sync cloud functionality here
     }
 
+    static components = { ImageIcon };
+
     static template = xml`
         <div class="px-2 pb-2 bg-light">
             <div class="row align-items-center">
                 <div class="col-6 d-flex align-items-center">
                     <button t-on-click="handleDrawerClick" class="btn btn-md me-2">
-                        <i class="fa fa-inbox me-1"></i> Drawer
+                        <ImageIcon name="'drawer'" class="'me-1'" /> Drawer
                     </button>
                     <button t-on-click="handlePrintReceiptClick" class="btn btn-md me-2">
-                        <i class="fa fa-print me-1"></i> Print Last Receipt
+                        <ImageIcon name="'printer'" class="'me-1'" /> Print Last Receipt
                     </button>
                     <button t-on-click="handleSyncClick" class="btn btn-md">
-                        <i class="fa fa-cloud me-1"></i> Sync Cloud
+                        <ImageIcon name="'download'" class="'me-1'" /> Sync Cloud
                     </button>
                 </div>
                 <div class="col-6 d-flex justify-content-end align-items-center">

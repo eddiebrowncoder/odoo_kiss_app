@@ -292,3 +292,124 @@ class WarehouseController(http.Controller):
                 status=500,
                 headers=[('Content-Type', 'application/json')]
             )
+        
+
+    @http.route('/api/warehouse_update/<int:warehouse_id>', type='http', auth='public', methods=['PUT'], csrf=False)
+    def api_warehouse_update(self, warehouse_id, **kw):
+        _logger.info(f"API request received to update warehouse ID: {warehouse_id}")
+        try:
+            # Get request data from JSON body
+            data = json.loads(request.httprequest.data.decode('utf-8'))
+            
+            # Find the warehouse
+            warehouse = request.env['stock.warehouse'].sudo().browse(warehouse_id)
+            if not warehouse.exists():
+                return request.make_response(
+                    json.dumps({'success': False, 'error': f'Warehouse with ID {warehouse_id} not found'}),
+                    headers=[('Content-Type', 'application/json')],
+                    status=404
+                )
+            
+            # Validate required fields
+            if not data.get('name'):
+                return request.make_response(
+                    json.dumps({'success': False, 'error': 'Warehouse name is required'}),
+                    headers=[('Content-Type', 'application/json')],
+                    status=400
+                )
+            
+            # Update warehouse name
+            warehouse_values = {
+                'name': data.get('name'),
+            }
+            
+            # Handle partner/address updates
+            if warehouse.partner_id:
+                # Update existing partner
+                partner_values = {
+                    'name': data.get('name'),  # Update partner name to match warehouse
+                }
+                
+                # Update address fields if provided
+                if 'address' in data:
+                    partner_values['street'] = data.get('address', False)
+                if 'city' in data:
+                    partner_values['city'] = data.get('city', False)
+                if 'zip_code' in data:
+                    partner_values['zip'] = data.get('zip_code', False)
+                
+                # Update state if provided
+                if data.get('state_id'):
+                    try:
+                        state_id = int(data.get('state_id'))
+                        partner_values['state_id'] = state_id
+                    except (ValueError, TypeError):
+                        _logger.warning(f"Invalid state_id format: {data.get('state_id')}")
+                
+                # Update country if provided
+                if data.get('country_id'):
+                    try:
+                        country_id = int(data.get('country_id'))
+                        partner_values['country_id'] = country_id
+                    except (ValueError, TypeError):
+                        _logger.warning(f"Invalid country_id format: {data.get('country_id')}")
+                
+                # Update partner
+                warehouse.partner_id.sudo().write(partner_values)
+            
+            elif any([data.get('address'), data.get('city'), data.get('state_id'), 
+                    data.get('zip_code'), data.get('country_id')]):
+                # Create new partner if address details are provided but no partner exists
+                partner_values = {
+                    'name': data.get('name'),
+                    'street': data.get('address', False),
+                    'city': data.get('city', False),
+                    'zip': data.get('zip_code', False),
+                    'company_id': request.env.user.company_id.id,
+                    'type': 'delivery',  # Address type
+                }
+                
+                # Add state and country if provided
+                if data.get('state_id'):
+                    try:
+                        state_id = int(data.get('state_id'))
+                        partner_values['state_id'] = state_id
+                    except (ValueError, TypeError):
+                        _logger.warning(f"Invalid state_id format: {data.get('state_id')}")
+                
+                if data.get('country_id'):
+                    try:
+                        country_id = int(data.get('country_id'))
+                        partner_values['country_id'] = country_id
+                    except (ValueError, TypeError):
+                        _logger.warning(f"Invalid country_id format: {data.get('country_id')}")
+                
+                # Create partner
+                partner = request.env['res.partner'].sudo().create(partner_values)
+                warehouse_values['partner_id'] = partner.id
+            
+            # Update warehouse
+            warehouse.sudo().write(warehouse_values)
+            
+            return request.make_response(
+                json.dumps({
+                    'success': True, 
+                    'warehouse_id': warehouse.id,
+                    'warehouse_name': warehouse.name,
+                    'warehouse_code': warehouse.code,
+                    'message': f"Warehouse '{data.get('name')}' updated successfully"
+                }),
+                headers=[('Content-Type', 'application/json')]
+            )
+            
+        except Exception as e:
+            _logger.error(f"Error updating warehouse: {str(e)}")
+            _logger.error(traceback.format_exc())
+            return request.make_response(
+                json.dumps({
+                    'success': False, 
+                    'error': str(e)
+                }),
+                headers=[('Content-Type', 'application/json')],
+                status=500
+            )

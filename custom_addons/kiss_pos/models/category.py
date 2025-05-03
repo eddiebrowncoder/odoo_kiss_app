@@ -1,4 +1,3 @@
-# In models/product_category.py
 from odoo import models, fields, api
 
 class ProductCategoryExtended(models.Model):

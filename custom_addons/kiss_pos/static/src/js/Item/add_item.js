@@ -3,6 +3,7 @@ import { App } from "@odoo/owl";
 import { xml } from "@odoo/owl";
 import { rpc } from "@web/core/network/rpc";
 import { Toast } from "../Common/toast";
+import { ITEM_TYPES, ITEM_UNITS, PACKAGING_TYPES } from "../constants";
 
 export class AddItem extends Component {
   setup() {
@@ -32,6 +33,7 @@ export class AddItem extends Component {
       dimension:"",
       brand: "",
       on_hand: "",
+      tax_code: "standard",
       created: "",
       age_restriction: false,
       use_ebt: false,
@@ -46,23 +48,10 @@ export class AddItem extends Component {
       categories: [],
       companies: [],
       vendors: [],
-      itemTypes: [
-        {id: 'consu', name: 'Consumable'},
-        {id: 'service', name: 'Service'},
-        {id: 'product', name: 'Storable Product'}
-      ],
-      itemUnits: [
-        {id:'EA', name:'EA'},
-        {id:'Box', name:'Box'},
-        {id:'Set', name:'Set'},
-        {id:'Kit', name:'Kit'}
-      ],
-      packagingTypes: [
-        {id:'Box', name:'Box'},
-        {id:'General', name:'General'},
-        {id:'Kit', name:'Kit(Bundle)'},
-        {id:'Set', name:'Set'}
-      ]
+      brands: [],
+      itemTypes: ITEM_TYPES,
+      itemUnits: ITEM_UNITS,
+      packagingTypes: PACKAGING_TYPES
     });
 
     this.handleSave = this.handleSave.bind(this);
@@ -146,6 +135,24 @@ export class AddItem extends Component {
                 console.log("vendors", vendorsResult)
                 this.data.vendors = vendorsResult;
             }
+
+            const brandsResult = await rpc("/web/dataset/call_kw", {
+              model: "product.data.feed.brand",
+              method: "search_read",
+              args: [
+                  [],
+                  ["id", "name"], // Fields to fetch
+              ],
+              kwargs: {
+                  context: {},
+              },
+          });
+          console.log("brands", brandsResult)
+
+          if (brandsResult && brandsResult.length) {
+              console.log("brands", brandsResult)
+              this.data.brands = brandsResult;
+          }
 
         } catch (e) {
             console.error("Failed to load reference data:", e);
@@ -464,6 +471,7 @@ export class AddItem extends Component {
         parent_company_id: this.data.parent_company_id,
         brand: this.data.brand,
         on_hand: this.data.on_hand,
+        tax_code: this.data.tax_code,
         age_restriction: this.data.age_restriction,
         use_ebt: this.data.use_ebt,
         categ_id: this.data.category,
@@ -709,8 +717,11 @@ export class AddItem extends Component {
                       <label for="brand" class="form-label">Brand</label>
                       <select class="form-select" id="brand" t-model="data.brand">
                         <option value="">Select Brand</option>
-                        <option value="brand1">Brand 1</option>
-                        <option value="brand2">Brand 2</option>
+                        <t t-foreach="data.brands" t-as="brand" t-key="brand.id">
+                          <option t-att-value="brand.id">
+                            <t t-esc="brand.name" />
+                          </option>
+                        </t>
                       </select>
                     </div>
                   </div>
@@ -784,17 +795,17 @@ export class AddItem extends Component {
                   <label class="form-label">Tax Code</label>
                   <div>
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="tax_code" id="standard"
-                        value="standard" checked="true" />
+                      <input class="form-check-input" type="radio" name="tax_code" t-model="data.tax_code" id="standard"
+                        value="standard" />
                       <label class="form-check-label" for="standard">Standard</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="tax_code" id="reduced"
+                      <input class="form-check-input" type="radio" name="tax_code" t-model="data.tax_code" id="reduced"
                         value="reduced" />
                       <label class="form-check-label" for="reduced">Reduced</label>
                     </div>
                     <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="tax_code" id="zero"
+                      <input class="form-check-input" type="radio" name="tax_code" t-model="data.tax_code" id="zero"
                         value="zero" />
                       <label class="form-check-label" for="zero">Zero</label>
                     </div>

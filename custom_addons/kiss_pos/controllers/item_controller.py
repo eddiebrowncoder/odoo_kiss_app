@@ -23,11 +23,69 @@ class ItemController(http.Controller):
     def import_item_page(self, **kw):
         return request.render('kiss_pos.template', {})
     
+    @http.route('/item_configuration', type='http', auth='public', website=True)
+    def item_configuration_page(self, **kw):
+        return request.render('kiss_pos.template', {})
+    
     @http.route('/api/item_list', type='http', auth='public', csrf=False)
     def api_item_list(self, **kw):
         _logger.info("API request received for item list.")
+        
+        search_query = kw.get('search', '')
+        _logger.info(f"Search Query: {search_query} (type: {type(search_query)})")
+        
+        filters = json.loads(request.httprequest.data)
+        _logger.info(f"Filters -> {filters}")
+        
         try:
-            items = request.env['product.template'].sudo().search([], order="id asc")
+            domain = []
+            
+            # Filter by name search query
+            if search_query and search_query.strip():
+                _logger.info(f"Entered If Search query: {search_query.strip()}")
+                domain.append(('name', 'ilike', search_query.strip()))
+            
+            # Filter by price range
+            price_range = filters.get('price_range')
+            if price_range:
+                if 'min_price' in price_range:
+                    domain.append(('list_price', '>=', float(price_range['min_price'])))
+                if 'max_price' in price_range:
+                    domain.append(('list_price', '<=', float(price_range['max_price'])))
+
+            # Filter by brands
+            brands = filters.get('brands')
+            if brands:
+                domain.append(('feed_brand_id', 'in', brands))
+            
+            # Filter by item type
+            item_types = filters.get('item_type')
+            if item_types:
+                domain.append(('type', 'in', item_types))
+            
+            # Filter by item unit
+            item_units = filters.get('item_unit')
+            if item_units:
+                domain.append(('item_unit', 'in', item_units))
+            
+            # Filter by category
+            categories = filters.get('categories')
+            if categories:
+                domain.append(('categ_id', 'in', categories))
+            
+            # Filter by suppliers
+            suppliers = filters.get('suppliers')
+            if suppliers:
+                domain.append(('vendor1_id', 'in', suppliers))
+                domain.append(('vendor2_id', 'in', suppliers))
+            
+            # Filter by tax code
+            tax_codes = filters.get('tax_codes')
+            if tax_codes:
+                domain.append(('tax_code', 'in', tax_codes))
+                
+            items = request.env['product.template'].sudo().search(domain, order="id desc")
+                
             _logger.info(f"Fetched {len(items)} items from the database.")
 
             all_items = []
@@ -69,10 +127,12 @@ class ItemController(http.Controller):
                     "modified_date": item.write_date.strftime('%m/%d/%y') if item.write_date else None,
                     "parent_id": item.categ_id.id if item.categ_id else None,
                     "cost": item.standard_price,
+                    "tax_code": item.tax_code if hasattr(item, 'tax_code') else None,
                     "msrp": item.msrp if hasattr(item, 'msrp') else None,
                     "parent_company": item.parent_company_id.name if hasattr(item, 'parent_company_id') and item.parent_company_id else None,
                     "parent_company_id": item.parent_company_id.id if hasattr(item, 'parent_company_id') and item.parent_company_id else None,
-                    "brand": item.brand if hasattr(item, 'brand') else None,
+                    "brand": item.feed_brand_id.name if item.feed_brand_id else "N/A",
+                    "feed_brand_id": item.feed_brand_id.id if hasattr(item, 'feed_brand_id') and item.feed_brand_id else None,
                     "on_hand": item.on_hand if hasattr(item, 'on_hand') else 0,
                     "age_restriction": item.age_restriction if hasattr(item, 'age_restriction') else False,
                     "use_ebt": item.use_ebt if hasattr(item, 'use_ebt') else False,
@@ -146,6 +206,7 @@ class ItemController(http.Controller):
             color = kw.get('color')
             size = kw.get('size')
             dimension = kw.get('dimension')
+            tax_code = kw.get('tax_code')
             
             # Log the extracted values for debugging
             _logger.info(f"item_name: {item_name}, barcode: {barcode}, status: {status}")
@@ -194,11 +255,13 @@ class ItemController(http.Controller):
                 'volume': volume,
                 'weight': weight,
                 'color_name': color,
-                'brand': brand,
+                'feed_brand_id': int(brand) if brand else False,
                 'on_hand': on_hand,
                 'age_restriction': age_restriction,
                 'use_ebt': use_ebt,
                 'item_unit': item_unit,
+                'item_type': item_type,
+                'tax_code':tax_code,
                 'packaging_type': packaging_type, 
                 'srs_category': srs_category,
                 'inventory_tracking': inventory_tracking,
@@ -241,3 +304,118 @@ class ItemController(http.Controller):
                 "success": False,
                 "error": f"Error creating item: {str(e)}"
             }
+        
+    @http.route('/api/update_item_status', type='http', auth='public', methods=['POST'], csrf=False)
+    def api_update_item_status(self, **kw):
+
+        try:
+            data = json.loads(request.httprequest.data.decode('utf-8'))
+            items = data.get('items', [])
+            
+            # Validate that items is a list
+            if not isinstance(items, list):
+                
+                return request.make_response(
+                    json.dumps({
+                        'success': False,
+                        'error': 'Items must be provided as a list.'
+                    }),
+                    headers=[('Content-Type', 'application/json')]
+                )
+            
+            if not items:
+            
+                return request.make_response(
+                    json.dumps({
+                        'success': False,
+                        'error': 'No items provided for update.'
+                    }),
+                    headers=[('Content-Type', 'application/json')]
+                )
+            
+            _logger.info(f"Processing bulk update for {len(items)} items")
+            
+            results = {
+                'success': True,
+                'processed': 0,
+                'failed': 0,
+                'results': []
+            }
+            
+            for item in items:
+                item_id = item.get('item_id')
+                item_status = item.get('item_status')
+                
+                # Skip items without required fields
+                if not item_id or not item_status:
+                    results['results'].append({
+                        'item_id': item_id,
+                        'success': False,
+                        'error': 'Both item_id and item_status are required.'
+                    })
+                    results['failed'] += 1
+                    continue
+                    
+                if item_status not in VALID_STATUSES:
+                    results['results'].append({
+                        'item_id': item_id,
+                        'success': False,
+                        'error': f"Invalid status '{item_status}'."
+                    })
+                    results['failed'] += 1
+                    continue
+                
+                try:
+                    # Find the product by ID
+                    product = request.env['product.template'].sudo().browse(int(item_id))
+                    
+                    if not product.exists():
+                        results['results'].append({
+                            'item_id': item_id,
+                            'success': False,
+                            'error': f"Item not found."
+                        })
+                        results['failed'] += 1
+                        continue
+                        
+                    # Update the item status
+                    product.write({
+                        'item_status': item_status
+                    })
+                    
+                    results['results'].append({
+                        'item_id': item_id,
+                        'name': product.name,
+                        'success': True,
+                        'message': f"Status updated to '{item_status}' successfully"
+                    })
+                    results['processed'] += 1
+                    
+                except Exception as e:
+                    _logger.error(f"Error updating item {item_id}: {str(e)}")
+                    results['results'].append({
+                        'item_id': item_id,
+                        'success': False,
+                        'error': str(e)
+                    })
+                    results['failed'] += 1
+            
+            # If all items failed, mark the overall request as failed
+            if results['processed'] == 0 and results['failed'] > 0:
+                results['success'] = False
+            
+            return request.make_response(
+                json.dumps(results),
+                headers=[('Content-Type', 'application/json')]
+            )
+        
+        except Exception as e:
+            _logger.error(f"Error occurred while updating item status: {str(e)}")
+            results = {
+                "success": False,
+                "error": f"Error updating item status: {str(e)}"
+            }
+            return request.make_response(
+                json.dumps(results),
+                headers=[('Content-Type', 'application/json')]
+            )

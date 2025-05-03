@@ -2,4 +2,8 @@ from . import category_controller
 from . import item_controller
 from . import warehouse_controller
 from . import tenant_db_controller
+from . import settings_controller
+from . import label_controller
 from . import tax_configuration_controller
+from . import custom_filter_controller
+from . import barcode_controller

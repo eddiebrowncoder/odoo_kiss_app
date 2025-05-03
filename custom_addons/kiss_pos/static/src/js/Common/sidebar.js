@@ -69,10 +69,11 @@ export class Sidebar extends Component {
       {
         id: "settings",
         label: "Settings",
-        href: "/settings",
+        href: "/warehouse",
         submenu: [
           { id: "warehouse_management", label: "Warehouse Management", href: "/warehouse" },
-          { id: "tax_configuration", label: "Tax Configuration", href: "/tax_configuration" }
+          { id: "tax_configuration", label: "Tax Configuration", href: "/tax_configuration" },
+          { id: "item_configuration", label: "Item Configuration", href: "/item_configuration" }
         ]
       }
     ];

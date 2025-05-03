@@ -1,0 +1,90 @@
+/* Define font faces for all weight variations */
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayThin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayThinItalic.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayLight.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayLightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayRoman.ttf') format('truetype');
+    font-weight: normal; /* 400 */
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayRomanItalic.ttf') format('truetype');
+    font-weight: normal; /* 400 */
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayMedium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayMediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayBold.ttf') format('truetype');
+    font-weight: bold; /* 700 */
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Neue Haas Grotesk Display Pro';
+    src: url('/kiss_pos/static/src/fonts/NeueHaasDisplayBoldItalic.ttf') format('truetype');
+    font-weight: bold; /* 700 */
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Override default font variables */
+:root {
+    --o-font-family: 'Neue Haas Grotesk Display Pro', sans-serif !important;
+}
+
+/* Apply to body and all elements */
+body, button, input, select, textarea, .o_main_navbar, .o_form_view, .o_list_view, .o_kanban_view, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Neue Haas Grotesk Display Pro', sans-serif !important;
+}

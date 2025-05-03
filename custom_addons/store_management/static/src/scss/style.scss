@@ -82,3 +82,19 @@
 .table-light th {
     color: $o-gray-700;
 }
+
+.modal-md {
+    width: 500px;
+}
+
+.edit-profile {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dark-gray {
+    background-color: #ADAFB1;
+}
